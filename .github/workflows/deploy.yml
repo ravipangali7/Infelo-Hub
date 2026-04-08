@@ -1,4 +1,4 @@
-name: Auto Deploy (Django + Node)
+name: Infelo Auto Deployment
 
 on:
   push:
