@@ -405,6 +405,8 @@ export interface SystemSetting {
   is_withdrawal: boolean;
   is_earning_withdrawal: boolean;
   is_topup_withdrawal: boolean;
+  /** When true, withdrawals require approved KYC (server-enforced). */
+  is_kyc_compulsory: boolean;
   earning_limit_percentage: string;
   reward_percentage: string;
   sms_api_key: string;
@@ -567,6 +569,7 @@ export interface WalletBalance {
     is_withdrawal?: boolean;
     is_earning_withdrawal?: boolean;
     is_topup_withdrawal?: boolean;
+    is_kyc_compulsory?: boolean;
   };
   deposit_details?: WalletDepositDetails;
 }

@@ -614,7 +614,7 @@ class SystemSettingSerializer(serializers.ModelSerializer):
             'minimum_withdrawal', 'maximum_withdrawal', 'minimum_deposit', 'maximum_deposit',
             'withdrawal_admin_fee_type', 'withdrawal_admin_fee', 'registration_fee',
             'low_stock_threshold', 'high_value_payment_threshold',
-            'is_withdrawal', 'is_earning_withdrawal', 'is_topup_withdrawal',
+            'is_withdrawal', 'is_earning_withdrawal', 'is_topup_withdrawal', 'is_kyc_compulsory',
             'earning_limit_percentage', 'reward_percentage', 'sms_api_key', 'sms_sender_id',
             'app_current_version', 'android_file', 'android_file_url',
             'created_at', 'updated_at',

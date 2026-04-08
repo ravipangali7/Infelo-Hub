@@ -38,16 +38,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items]);
 
   const addToCart = useCallback((product: Product, quantity = 1) => {
+    const stock = Number(product.stock) || 0;
+    if (stock <= 0) return;
     setItems((prev) => {
       const existing = prev.find((i) => i.product.id === product.id);
       if (existing) {
+        const nextQty = Math.min(existing.quantity + quantity, stock);
         return prev.map((i) =>
-          i.product.id === product.id
-            ? { ...i, quantity: i.quantity + quantity }
-            : i
+          i.product.id === product.id ? { ...i, quantity: nextQty } : i
         );
       }
-      return [...prev, { product, quantity }];
+      const q = Math.min(Math.max(1, quantity), stock);
+      return [...prev, { product, quantity: q }];
     });
   }, []);
 
@@ -58,9 +60,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const updateQuantity = useCallback((productId: number, quantity: number) => {
     if (quantity < 1) return;
     setItems((prev) =>
-      prev.map((i) =>
-        i.product.id === productId ? { ...i, quantity } : i
-      )
+      prev.map((i) => {
+        if (i.product.id !== productId) return i;
+        const stock = Number(i.product.stock) || 0;
+        const maxAllowed = stock > 0 ? stock : i.quantity;
+        const next = Math.max(1, Math.min(quantity, maxAllowed));
+        return { ...i, quantity: next };
+      })
     );
   }, []);
 

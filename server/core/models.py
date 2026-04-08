@@ -534,6 +534,10 @@ class SystemSetting(models.Model):
     is_withdrawal = models.BooleanField(default=True)
     is_earning_withdrawal = models.BooleanField(default=True)
     is_topup_withdrawal = models.BooleanField(default=True)
+    is_kyc_compulsory = models.BooleanField(
+        default=True,
+        help_text='When enabled, users must have approved KYC to create withdrawal requests.',
+    )
     earning_limit_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     reward_percentage = models.DecimalField(max_digits=5, decimal_places=2, default=0)
     sms_api_key = models.CharField(max_length=255, blank=True)

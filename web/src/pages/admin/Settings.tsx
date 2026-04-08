@@ -38,6 +38,7 @@ const SETTINGS_FORM_KEYS: (keyof SystemSetting)[] = [
   "is_withdrawal",
   "is_earning_withdrawal",
   "is_topup_withdrawal",
+  "is_kyc_compulsory",
   "earning_limit_percentage",
   "reward_percentage",
   "sms_api_key",
@@ -73,6 +74,7 @@ const emptyForm = (): Partial<SystemSetting> => ({
   is_withdrawal: true,
   is_earning_withdrawal: true,
   is_topup_withdrawal: true,
+  is_kyc_compulsory: true,
   earning_limit_percentage: "",
   reward_percentage: "",
   sms_api_key: "",
@@ -100,6 +102,7 @@ function dataToForm(data: SystemSetting): Partial<SystemSetting> {
     is_withdrawal: data.is_withdrawal ?? true,
     is_earning_withdrawal: data.is_earning_withdrawal ?? true,
     is_topup_withdrawal: data.is_topup_withdrawal ?? true,
+    is_kyc_compulsory: data.is_kyc_compulsory ?? true,
     earning_limit_percentage: data.earning_limit_percentage ?? "",
     reward_percentage: data.reward_percentage ?? "",
     sms_api_key: data.sms_api_key ?? "",
@@ -434,6 +437,18 @@ const Settings = () => {
                   />
                   <Label>Top-up withdrawal</Label>
                 </div>
+                <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-2 w-full sm:w-auto">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={form.is_kyc_compulsory ?? true}
+                      onCheckedChange={(v) => set("is_kyc_compulsory", v)}
+                    />
+                    <Label>KYC required for withdrawal</Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground sm:max-w-md">
+                    When off, users can submit withdrawals without approved KYC (other checks still apply).
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -603,6 +618,8 @@ const Settings = () => {
                 <span className="font-medium">{data.is_earning_withdrawal ? "Yes" : "No"}</span>
                 <span className="text-muted-foreground text-sm">Top-up withdrawal:</span>
                 <span className="font-medium">{data.is_topup_withdrawal ? "Yes" : "No"}</span>
+                <span className="text-muted-foreground text-sm">KYC required for withdrawal:</span>
+                <span className="font-medium">{data.is_kyc_compulsory !== false ? "Yes" : "No"}</span>
               </div>
               <div className="space-y-2">
                 <p className="text-muted-foreground text-sm">Esewa phone</p>

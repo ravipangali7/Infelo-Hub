@@ -72,5 +72,10 @@
 	<string>Infelo Hub needs microphone access for audio and web features.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Infelo Hub needs photo library access to attach images and files.</string>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>whatsapp</string>
+		<string>https</string>
+	</array>
 </dict>
 </plist>

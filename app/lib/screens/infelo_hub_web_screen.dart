@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:open_filex/open_filex.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../constants/hub_url.dart';
 import '../services/hub_fcm_register.dart';
@@ -40,6 +41,44 @@ const String _kFlutterClientFlagScript = '''
   try { window.__infeloHubFlutterClient = true; } catch (e) {}
 })();
 ''';
+
+bool _isWhatsAppLaunchUri(Uri uri) {
+  final host = uri.host.toLowerCase();
+  if (host == 'wa.me' || host == 'www.wa.me') return true;
+  if (host == 'api.whatsapp.com' || host == 'www.api.whatsapp.com') {
+    return true;
+  }
+  if (host == 'web.whatsapp.com' || host == 'www.web.whatsapp.com') {
+    return true;
+  }
+  if (uri.scheme == 'whatsapp') return true;
+  return false;
+}
+
+Future<void> _openWhatsAppExternally(Uri uri) async {
+  const mode = LaunchMode.externalApplication;
+  if (await canLaunchUrl(uri)) {
+    await launchUrl(uri, mode: mode);
+    return;
+  }
+  final host = uri.host.toLowerCase();
+  if (host == 'wa.me' || host == 'www.wa.me') {
+    var path = uri.path;
+    while (path.startsWith('/')) {
+      path = path.substring(1);
+    }
+    final digits = path.split('').where((ch) {
+      final u = ch.codeUnitAt(0);
+      return u >= 0x30 && u <= 0x39;
+    }).join();
+    if (digits.isNotEmpty) {
+      final direct = Uri.parse('whatsapp://send?phone=$digits');
+      if (await canLaunchUrl(direct)) {
+        await launchUrl(direct, mode: mode);
+      }
+    }
+  }
+}
 
 class InfeloHubWebScreen extends StatefulWidget {
   const InfeloHubWebScreen({super.key});
@@ -487,7 +526,25 @@ class _InfeloHubWebScreenState extends State<InfeloHubWebScreen>
                   allowsBackForwardNavigationGestures: true,
                   mixedContentMode:
                       MixedContentMode.MIXED_CONTENT_COMPATIBILITY_MODE,
+                  useShouldOverrideUrlLoading: true,
+                  supportMultipleWindows: true,
                 ),
+                shouldOverrideUrlLoading: (controller, navigationAction) async {
+                  final uri = navigationAction.request.url;
+                  if (uri != null && _isWhatsAppLaunchUri(uri)) {
+                    await _openWhatsAppExternally(uri);
+                    return NavigationActionPolicy.CANCEL;
+                  }
+                  return NavigationActionPolicy.ALLOW;
+                },
+                onCreateWindow: (controller, createWindowAction) async {
+                  final uri = createWindowAction.request.url;
+                  if (uri != null && _isWhatsAppLaunchUri(uri)) {
+                    await _openWhatsAppExternally(uri);
+                    return true;
+                  }
+                  return false;
+                },
                 onWebViewCreated: (c) async {
                   _webController = c;
                   HubPushLinks.setWebController(c);

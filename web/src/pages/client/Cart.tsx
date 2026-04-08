@@ -51,6 +51,8 @@ const Cart = () => {
       <div className="client-page-container client-page-content pt-20 pb-56 lg:pb-36 space-y-3">
         {items.map(({ product, quantity }) => {
           const image = product.image_url || product.image || "";
+          const stock = Number(product.stock) || 0;
+          const cannotIncrease = stock <= 0 || quantity >= stock;
           return (
             <div
               key={product.id}
@@ -70,6 +72,11 @@ const Cart = () => {
                 <p className="font-semibold text-sm leading-tight line-clamp-2">{product.name}</p>
                 <p className="text-primary font-bold mt-1">रु {Number(product.selling_price) * quantity}</p>
                 <p className="text-muted-foreground text-xs">रु {product.selling_price} each</p>
+                {stock > 0 ? (
+                  <p className="text-muted-foreground text-[11px] mt-0.5">
+                    Max {stock} in stock{cannotIncrease ? " (cart at max)" : ""}
+                  </p>
+                ) : null}
 
                 <div className="flex items-center justify-between mt-2">
                   <div className="flex items-center gap-2 bg-muted rounded-xl p-1">
@@ -85,7 +92,9 @@ const Cart = () => {
                     <button
                       type="button"
                       onClick={() => updateQuantity(product.id, quantity + 1)}
-                      className="w-7 h-7 rounded-lg bg-background flex items-center justify-center"
+                      disabled={cannotIncrease}
+                      className="w-7 h-7 rounded-lg bg-background flex items-center justify-center disabled:opacity-40"
+                      aria-label={cannotIncrease ? "Maximum quantity reached" : "Increase quantity"}
                     >
                       <Plus className="w-3 h-3" />
                     </button>

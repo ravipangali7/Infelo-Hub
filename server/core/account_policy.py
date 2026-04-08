@@ -43,7 +43,10 @@ def get_withdraw_policy_error(user, settings_obj, amount=None, wallet_type='earn
             detail='Your wallet is frozen. Please contact administration.',
             status_code=403,
         )
-    if user.kyc_status != KycStatus.APPROVED:
+    kyc_compulsory = True
+    if settings_obj is not None:
+        kyc_compulsory = getattr(settings_obj, 'is_kyc_compulsory', True)
+    if kyc_compulsory and user.kyc_status != KycStatus.APPROVED:
         return PolicyError(
             code='KYC_REQUIRED',
             detail='KYC approval is required for withdrawals.',

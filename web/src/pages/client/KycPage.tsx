@@ -126,7 +126,7 @@ const KycPage = () => {
           <Alert className="border-success/30 bg-success/5">
             <CheckCircle2 className="h-4 w-4 text-success" />
             <AlertDescription className="text-sm">
-              KYC is approved. You can use withdrawal and other features that require verification.
+              KYC is approved. You can use withdrawals (when enabled) and any other features your administrator ties to verification.
             </AlertDescription>
           </Alert>
         )}
@@ -171,7 +171,7 @@ const KycPage = () => {
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription className="text-sm">
-              KYC verification is required to withdraw funds. Please upload clear photos of your government-issued ID.
+              Please upload clear photos of your government-issued ID. Your administrator may require approved KYC before withdrawals.
             </AlertDescription>
           </Alert>
         )}

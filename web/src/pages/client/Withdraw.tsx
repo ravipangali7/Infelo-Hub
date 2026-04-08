@@ -6,7 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useWallet, usePayoutAccounts, useCreatePaymentRequest, usePaymentRequests } from "@/api/hooks";
+import {
+  useWallet,
+  usePayoutAccounts,
+  useCreatePaymentRequest,
+  usePaymentRequests,
+  useKycStatus,
+} from "@/api/hooks";
 import { ApiError } from "@/api/client";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PaymentMethodLogo } from "@/components/PaymentMethodLogo";
@@ -26,6 +32,7 @@ const Withdraw = () => {
   const [selectedAccount, setSelectedAccount] = useState<number | null>(null);
 
   const { data: walletData } = useWallet();
+  const { data: kycUser } = useKycStatus();
   const { data: accountsData } = usePayoutAccounts();
   const { data: prData, isLoading: prLoading } = usePaymentRequests("withdraw");
   const withdrawRequests = prData?.results ?? [];
@@ -42,6 +49,9 @@ const Withdraw = () => {
   const netAmount = Number(amount) - fee;
 
   const payoutAccounts = accountsData?.results?.filter((a) => a.status === "approved") ?? [];
+  const kycCompulsory = limits?.is_kyc_compulsory !== false;
+  const kycBlocksWithdraw = kycCompulsory && kycUser?.kyc_status !== "approved";
+
   const withdrawalDisabled =
     limits?.is_withdrawal === false ||
     (walletType === "earning" && limits?.is_earning_withdrawal === false) ||
@@ -90,6 +100,17 @@ const Withdraw = () => {
             </AlertDescription>
           </Alert>
         )}
+        {kycBlocksWithdraw && !withdrawalDisabled && (
+          <Alert className="border-amber-500/40 bg-amber-500/10">
+            <AlertCircle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-sm">
+              Verified identity (KYC) is required before you can withdraw.{" "}
+              <Link to="/kyc" className="font-medium text-primary underline underline-offset-2">
+                Complete verification
+              </Link>
+            </AlertDescription>
+          </Alert>
+        )}
 
         <section className="space-y-3">
           <h2 className="text-sm font-semibold text-muted-foreground">Request history</h2>
@@ -121,7 +142,12 @@ const Withdraw = () => {
           )}
         </section>
 
-        <Button type="button" className="w-full h-12" onClick={() => setShowForm(true)}>
+        <Button
+          type="button"
+          className="w-full h-12"
+          disabled={withdrawalDisabled || kycBlocksWithdraw}
+          onClick={() => setShowForm(true)}
+        >
           Withdraw Fund
         </Button>
 
@@ -259,6 +285,7 @@ const Withdraw = () => {
             Number(amount) <= 0 ||
             !selectedAccount ||
             withdrawalDisabled ||
+            kycBlocksWithdraw ||
             Number(amount) > balance ||
             createRequest.isPending
           }

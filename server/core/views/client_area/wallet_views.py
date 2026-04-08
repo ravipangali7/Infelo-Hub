@@ -36,6 +36,7 @@ def wallet_balance(request):
             'is_withdrawal': setting.is_withdrawal,
             'is_earning_withdrawal': setting.is_earning_withdrawal,
             'is_topup_withdrawal': setting.is_topup_withdrawal,
+            'is_kyc_compulsory': getattr(setting, 'is_kyc_compulsory', True),
         },
         'deposit_details': {
             'esewa_phone': setting.esewa_phone or '',

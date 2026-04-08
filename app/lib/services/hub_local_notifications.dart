@@ -21,7 +21,7 @@ Future<void> initHubLocalNotifications() async {
   if (_initialized) return;
   _initialized = true;
 
-  const androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
+  const androidInit = AndroidInitializationSettings('@drawable/ic_notification');
   const darwinInit = DarwinInitializationSettings();
   const initSettings = InitializationSettings(
     android: androidInit,
@@ -94,7 +94,8 @@ Future<void> showNotificationFromRemoteMessage(RemoteMessage message) async {
     channelDescription: 'Foreground push mirror',
     importance: Importance.high,
     priority: Priority.high,
-    icon: '@mipmap/ic_launcher',
+    icon: '@drawable/ic_notification',
+    largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
   );
   const darwinDetails = DarwinNotificationDetails();
   final details = NotificationDetails(
