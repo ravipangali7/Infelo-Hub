@@ -244,11 +244,11 @@ function AddressForm({
   return (
     <div className="grid gap-4 py-4">
       <div>
-        <Label>Label (e.g. Home, Office)</Label>
+        <Label>Label (e.g. Home, Ofice)</Label>
         <Input
           value={form.name}
           onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="Home"
+          placeholder="Home, Office"
           className="mt-1"
         />
       </div>
@@ -262,13 +262,16 @@ function AddressForm({
         />
       </div>
       <div>
-        <Label>Street Address</Label>
-        <Input
-          value={form.address}
-          onChange={(e) => setForm({ ...form, address: e.target.value })}
-          placeholder="Street, area, landmark"
-          className="mt-1"
-        />
+        <Label>Country</Label>
+        <Input value={DELIVERY_COUNTRY} readOnly className="mt-1 bg-muted/50" />
+      </div>
+      <div>
+        <Label>State / Province</Label>
+        <Input value={form.state} readOnly className="mt-1 bg-muted/50" placeholder="Select city below" />
+      </div>
+      <div>
+        <Label>District</Label>
+        <Input value={form.district} readOnly className="mt-1 bg-muted/50" placeholder="Select city below" />
       </div>
       <div>
         <Label>City</Label>
@@ -296,19 +299,14 @@ function AddressForm({
           </SelectContent>
         </Select>
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label>District</Label>
-          <Input value={form.district} readOnly className="mt-1 bg-muted/50" placeholder="—" />
-        </div>
-        <div>
-          <Label>Province</Label>
-          <Input value={form.state} readOnly className="mt-1 bg-muted/50" placeholder="—" />
-        </div>
-      </div>
       <div>
-        <Label>Country</Label>
-        <Input value={DELIVERY_COUNTRY} readOnly className="mt-1 bg-muted/50" />
+        <Label>Street Address</Label>
+        <Input
+          value={form.address}
+          onChange={(e) => setForm({ ...form, address: e.target.value })}
+          placeholder="Street, area, landmark"
+          className="mt-1"
+        />
       </div>
     </div>
   );
