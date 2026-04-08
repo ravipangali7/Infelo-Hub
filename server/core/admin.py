@@ -273,8 +273,8 @@ class SystemSettingAdmin(BaseAdmin):
 
 @admin.register(City)
 class CityAdmin(BaseAdmin):
-    list_display = ("id", "name", "created_at")
-    search_fields = ("id", "name")
+    list_display = ("id", "name", "district", "province", "created_at")
+    search_fields = ("id", "name", "district", "province")
 
 
 @admin.register(Package)

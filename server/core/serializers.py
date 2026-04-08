@@ -91,15 +91,20 @@ class UserKycListSerializer(serializers.ModelSerializer):
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City
-        fields = ['id', 'name', 'created_at', 'updated_at']
+        fields = ['id', 'name', 'district', 'province', 'created_at', 'updated_at']
 
 
 class ShippingChargeSerializer(serializers.ModelSerializer):
     city_name = serializers.CharField(source='city.name', read_only=True)
+    city_district = serializers.CharField(source='city.district', read_only=True)
+    city_province = serializers.CharField(source='city.province', read_only=True)
 
     class Meta:
         model = ShippingCharge
-        fields = ['id', 'city', 'city_name', 'charge', 'created_at', 'updated_at']
+        fields = [
+            'id', 'city', 'city_name', 'city_district', 'city_province',
+            'charge', 'created_at', 'updated_at',
+        ]
 
 
 class PaidRecordSerializer(serializers.ModelSerializer):
@@ -266,6 +271,28 @@ class AddressSerializer(serializers.ModelSerializer):
             'id', 'user', 'name', 'phone', 'country', 'state', 'district', 'city', 'city_name',
             'address', 'latitude', 'longitude', 'user_name', 'user_phone', 'created_at', 'updated_at',
         ]
+
+    _NEPAL = 'Nepal'
+
+    def create(self, validated_data):
+        validated_data['country'] = self._NEPAL
+        city = validated_data.get('city')
+        if city is not None:
+            if getattr(city, 'district', None):
+                validated_data['district'] = city.district
+            if getattr(city, 'province', None):
+                validated_data['state'] = city.province
+        return super().create(validated_data)
+
+    def update(self, instance, validated_data):
+        validated_data['country'] = self._NEPAL
+        city = validated_data.get('city', instance.city)
+        if city is not None:
+            if getattr(city, 'district', None):
+                validated_data['district'] = city.district
+            if getattr(city, 'province', None):
+                validated_data['state'] = city.province
+        return super().update(instance, validated_data)
 
 
 class ProductCategorySerializer(serializers.ModelSerializer):

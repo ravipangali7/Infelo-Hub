@@ -267,13 +267,11 @@ const OrderDetail = () => {
               <p className="font-medium">{deliveryAddress.name}</p>
               <p className="text-muted-foreground">{deliveryAddress.phone}</p>
               <p className="text-muted-foreground">{deliveryAddress.address}</p>
-              {(deliveryAddress.district || deliveryAddress.state || deliveryAddress.country) && (
-                <p className="text-muted-foreground">
-                  {[deliveryAddress.district, deliveryAddress.state, deliveryAddress.country]
-                    .filter(Boolean)
-                    .join(", ")}
-                </p>
-              )}
+              <p className="text-muted-foreground">
+                {[deliveryAddress.district, deliveryAddress.state, deliveryAddress.country || "Nepal"]
+                  .filter(Boolean)
+                  .join(", ")}
+              </p>
             </div>
           ) : (
             <p className="text-sm text-muted-foreground italic">Address details unavailable</p>

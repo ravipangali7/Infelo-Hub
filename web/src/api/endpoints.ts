@@ -7,6 +7,7 @@ import type {
   PayoutAccount,
   PaymentRequest,
   Address,
+  City,
   Product,
   ProductCategory,
   Package,
@@ -436,8 +437,10 @@ export const adminApi = {
     return api.get<PaginatedResponse<{ id: number; name: string; created_at: string; updated_at: string }>>(admin(`cities/${q}`));
   },
   getCity: (id: number) => api.get<{ id: number; name: string; created_at: string; updated_at: string }>(admin(`cities/${id}/`)),
-  createCity: (data: { name: string }) => api.post<{ id: number; name: string; created_at: string; updated_at: string }>(admin("cities/"), data),
-  updateCity: (id: number, data: { name?: string }) => api.patch<{ id: number; name: string; created_at: string; updated_at: string }>(admin(`cities/${id}/`), data),
+  createCity: (data: { name: string; district?: string; province?: string }) =>
+    api.post<City>(admin("cities/"), data),
+  updateCity: (id: number, data: { name?: string; district?: string; province?: string }) =>
+    api.patch<City>(admin(`cities/${id}/`), data),
   deleteCity: (id: number) => api.delete<void>(admin(`cities/${id}/`)),
   getShippingCharges: (params?: { city?: string; search?: string; date_from?: string; date_to?: string; page?: number; page_size?: number; order_by?: string }) => {
     const q = adminListParams(params ?? {});

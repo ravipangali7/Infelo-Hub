@@ -106,6 +106,8 @@ export interface PackageProduct {
 export interface City {
   id: number;
   name: string;
+  district: string;
+  province: string;
   created_at: string;
   updated_at: string;
 }
@@ -182,6 +184,8 @@ export interface ShippingCharge {
   id: number;
   city: number;
   city_name: string;
+  city_district: string;
+  city_province: string;
   charge: string;
   created_at: string;
   updated_at: string;

@@ -12,17 +12,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress, useShippingCharges } from "@/api/hooks";
+import { useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress, useShippingCharges, useProfile } from "@/api/hooks";
 import type { Address } from "@/api/types";
 import { Skeleton } from "@/components/ui/skeleton";
+
+/** All delivery addresses are within Nepal; enforced on the server as well. */
+const DELIVERY_COUNTRY = "Nepal";
 
 const Addresses = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Address | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-  const [form, setForm] = useState({ name: "", phone: "", address: "", country: "", state: "", district: "", city: "" });
+  const [form, setForm] = useState({ name: "", phone: "", address: "", state: "", district: "", city: "" });
 
   const { data, isLoading, error } = useAddresses();
+  const { data: profile } = useProfile();
   const { data: shippingData } = useShippingCharges();
   const createAddress = useCreateAddress();
   const deleteAddress = useDeleteAddress();
@@ -31,7 +35,14 @@ const Addresses = () => {
   const shippingCharges = shippingData?.results ?? [];
 
   const openAdd = () => {
-    setForm({ name: "", phone: "", address: "", country: "", state: "", district: "", city: "" });
+    setForm({
+      name: "Home",
+      phone: profile?.phone ?? "",
+      address: "",
+      state: "",
+      district: "",
+      city: "",
+    });
     setAddOpen(true);
   };
   const openEdit = (addr: Address) => {
@@ -40,7 +51,6 @@ const Addresses = () => {
       name: addr.name,
       phone: addr.phone,
       address: addr.address,
-      country: addr.country || "",
       state: addr.state || "",
       district: addr.district || "",
       city: addr.city ? String(addr.city) : "",
@@ -52,7 +62,7 @@ const Addresses = () => {
 
   const handleCreate = () => {
     createAddress.mutate(
-      { ...form, city: form.city ? Number(form.city) : null },
+      { ...form, country: DELIVERY_COUNTRY, city: form.city ? Number(form.city) : null },
       {
         onSuccess: () => {
           setAddOpen(false);
@@ -173,7 +183,7 @@ function AddressCard({
   onDelete: () => void;
   isDeleting: boolean;
 }) {
-  const locationParts = [addr.district, addr.state, addr.country].filter(Boolean);
+  const locationParts = [addr.district, addr.state, addr.country || DELIVERY_COUNTRY].filter(Boolean);
 
   return (
     <div className="floating-card overflow-hidden">
@@ -221,9 +231,15 @@ function AddressForm({
   setForm,
   shippingCharges,
 }: {
-  form: { name: string; phone: string; address: string; country: string; state: string; district: string; city: string };
+  form: { name: string; phone: string; address: string; state: string; district: string; city: string };
   setForm: (f: typeof form) => void;
-  shippingCharges: Array<{ city: number; city_name: string; charge: string }>;
+  shippingCharges: Array<{
+    city: number;
+    city_name: string;
+    city_district: string;
+    city_province: string;
+    charge: string;
+  }>;
 }) {
   return (
     <div className="grid gap-4 py-4">
@@ -254,49 +270,45 @@ function AddressForm({
           className="mt-1"
         />
       </div>
-      <div className="grid grid-cols-2 gap-2">
-        <div>
-          <Label>City</Label>
-          <Select value={form.city || undefined} onValueChange={(value) => setForm({ ...form, city: value })}>
-            <SelectTrigger className="mt-1">
-              <SelectValue placeholder="Select city" />
-            </SelectTrigger>
-            <SelectContent>
-              {shippingCharges.map((row) => (
-                <SelectItem key={row.city} value={String(row.city)}>
-                  {row.city_name} (रु {Number(row.charge).toLocaleString()})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label>District</Label>
-          <Input
-            value={form.district}
-            onChange={(e) => setForm({ ...form, district: e.target.value })}
-            className="mt-1"
-          />
-        </div>
+      <div>
+        <Label>City</Label>
+        <Select
+          value={form.city || undefined}
+          onValueChange={(value) => {
+            const row = shippingCharges.find((r) => String(r.city) === value);
+            setForm({
+              ...form,
+              city: value,
+              district: row?.city_district ?? "",
+              state: row?.city_province ?? "",
+            });
+          }}
+        >
+          <SelectTrigger className="mt-1">
+            <SelectValue placeholder="Select city" />
+          </SelectTrigger>
+          <SelectContent>
+            {shippingCharges.map((row) => (
+              <SelectItem key={row.city} value={String(row.city)}>
+                {row.city_name} (रु {Number(row.charge).toLocaleString()})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div>
-          <Label>State/Province</Label>
-          <Input
-            value={form.state}
-            onChange={(e) => setForm({ ...form, state: e.target.value })}
-            className="mt-1"
-          />
+          <Label>District</Label>
+          <Input value={form.district} readOnly className="mt-1 bg-muted/50" placeholder="—" />
         </div>
         <div>
-          <Label>Country</Label>
-          <Input
-            value={form.country}
-            onChange={(e) => setForm({ ...form, country: e.target.value })}
-            placeholder="Nepal"
-            className="mt-1"
-          />
+          <Label>Province</Label>
+          <Input value={form.state} readOnly className="mt-1 bg-muted/50" placeholder="—" />
         </div>
+      </div>
+      <div>
+        <Label>Country</Label>
+        <Input value={DELIVERY_COUNTRY} readOnly className="mt-1 bg-muted/50" />
       </div>
     </div>
   );
@@ -310,9 +322,15 @@ function EditAddressDialog({
   onSave,
 }: {
   addr: Address;
-  form: { name: string; phone: string; address: string; country: string; state: string; district: string; city: string };
+  form: { name: string; phone: string; address: string; state: string; district: string; city: string };
   setForm: (f: typeof form) => void;
-  shippingCharges: Array<{ city: number; city_name: string; charge: string }>;
+  shippingCharges: Array<{
+    city: number;
+    city_name: string;
+    city_district: string;
+    city_province: string;
+    charge: string;
+  }>;
   onSave: () => void;
 }) {
   const updateMutation = useUpdateAddress(addr.id);
@@ -322,7 +340,7 @@ function EditAddressDialog({
         name: form.name,
         phone: form.phone,
         address: form.address,
-        country: form.country,
+        country: DELIVERY_COUNTRY,
         state: form.state,
         district: form.district,
         city: form.city ? Number(form.city) : null,

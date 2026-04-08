@@ -141,7 +141,9 @@ const Checkout = () => {
                       <p className="font-semibold text-sm">{addr.name}</p>
                       <p className="text-muted-foreground text-xs">{addr.phone}</p>
                       <p className="text-muted-foreground text-xs mt-0.5">
-                        {[addr.address, addr.city_name, addr.district, addr.state].filter(Boolean).join(", ")}
+                        {[addr.address, addr.city_name, addr.district, addr.state, addr.country || "Nepal"]
+                          .filter(Boolean)
+                          .join(", ")}
                       </p>
                     </div>
                   </button>

@@ -121,6 +121,12 @@ class SystemWithdrawalStatus(models.TextChoices):
 # Models (dependency order)
 class City(models.Model):
     name = models.CharField(max_length=255)
+    district = models.CharField(max_length=100, blank=True)
+    province = models.CharField(
+        max_length=100,
+        blank=True,
+        help_text='Province (प्रदेश); stored on Address.state for delivery.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

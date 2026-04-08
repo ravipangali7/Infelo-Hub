@@ -19,7 +19,7 @@ export default function CityForm() {
   const qc = useQueryClient();
   const { toast } = useToast();
   const createMutation = useMutation({
-    mutationFn: (data: { name: string }) => adminApi.createCity(data),
+    mutationFn: (data: { name: string; district?: string; province?: string }) => adminApi.createCity(data),
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: adminKeys.cities() });
       toast({ title: "City created." });
@@ -28,7 +28,17 @@ export default function CityForm() {
     onError: (e: { detail?: string }) => { toast({ variant: "destructive", title: "Error", description: e.detail }); },
   });
   const updateMutation = useMutation({
-    mutationFn: ({ id: pk, name }: { id: number; name: string }) => adminApi.updateCity(pk, { name }),
+    mutationFn: ({
+      id: pk,
+      name,
+      district,
+      province,
+    }: {
+      id: number;
+      name: string;
+      district?: string;
+      province?: string;
+    }) => adminApi.updateCity(pk, { name, district, province }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminKeys.city(cityId!) });
       toast({ title: "Saved." });
@@ -38,10 +48,13 @@ export default function CityForm() {
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const name = (new FormData(e.currentTarget).get("name") as string)?.trim();
+    const fd = new FormData(e.currentTarget);
+    const name = (fd.get("name") as string)?.trim();
+    const district = ((fd.get("district") as string) || "").trim();
+    const province = ((fd.get("province") as string) || "").trim();
     if (!name) { toast({ variant: "destructive", title: "Name required." }); return; }
-    if (isNew) createMutation.mutate({ name });
-    else if (cityId) updateMutation.mutate({ id: cityId, name });
+    if (isNew) createMutation.mutate({ name, district, province });
+    else if (cityId) updateMutation.mutate({ id: cityId, name, district, province });
   };
 
   if (!isNew && cityId && isLoading && !city) {
@@ -61,6 +74,14 @@ export default function CityForm() {
             <div className="space-y-2">
               <Label htmlFor="name">Name *</Label>
               <Input id="name" name="name" required defaultValue={city?.name} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="district">District</Label>
+              <Input id="district" name="district" defaultValue={city?.district} placeholder="e.g. Kathmandu" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="province">Province</Label>
+              <Input id="province" name="province" defaultValue={city?.province} placeholder="e.g. Bagmati" />
             </div>
             <div className="flex gap-2">
               <Button type="submit" disabled={createMutation.isPending || updateMutation.isPending}>{isNew ? "Create" : "Save"}</Button>
