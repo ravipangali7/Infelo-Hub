@@ -3,7 +3,7 @@ from django.http import HttpResponse, Http404
 from django.conf import settings
 from core.models import Product
 
-SPA_BASE_URL = getattr(settings, 'SPA_BASE_URL', 'http://localhost:5173')
+SPA_BASE_URL = getattr(settings, 'SPA_BASE_URL', 'https://infelohub.infelogroup.com')
 
 
 def product_share_page(request, slug):
