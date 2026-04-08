@@ -31,7 +31,7 @@ touch /home/infelogr/domains/Infelo-Hub/server/tmp/restart.txt
 # FRONTEND BUILD
 # =====================
 echo "📦 Building frontend..."
-cd web   # change if your frontend folder name is different
+cd /home/infelogr/domains/Infelo-Hub/web   # change if your frontend folder name is different
 npm run build
 
 echo "✅ Deployment finished!"

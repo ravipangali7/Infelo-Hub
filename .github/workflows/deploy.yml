@@ -1,4 +1,4 @@
-name: Infelo Auto Deployment
+name: Infelo Auto Deployment WORKING
 
 on:
   push:
