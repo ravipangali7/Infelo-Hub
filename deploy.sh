@@ -27,4 +27,9 @@ echo "🔄 Restarting Python app..."
 
 touch /home/infelogr/domains/Infelo-Hub/server/tmp/restart.txt
 
+
+# Activate Node.js environment
+source /home/infelogr/nodevenv/domains/app.infelogroup.com/10/bin/activate
+npm run build
+
 echo "✅ Deployment finished!"
