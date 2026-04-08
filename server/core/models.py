@@ -702,6 +702,10 @@ class SiteSetting(models.Model):
     instagram = models.URLField(blank=True)
     tiktok = models.URLField(blank=True)
     youtube = models.URLField(blank=True)
+    google_analytics_script = models.TextField(
+        blank=True,
+        help_text='Paste the full Google Analytics snippet (script tags). Injected on the public site and admin panel.',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

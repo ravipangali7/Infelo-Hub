@@ -15,5 +15,5 @@ def public_site_settings(request):
     # Only return public-safe fields
     data = serializer.data
     safe_fields = ['id', 'name', 'logo_url', 'title', 'subtitle', 'phone', 'whatsapp',
-                   'facebook', 'instagram', 'tiktok', 'youtube']
+                   'facebook', 'instagram', 'tiktok', 'youtube', 'google_analytics_script']
     return Response({k: data[k] for k in safe_fields if k in data})

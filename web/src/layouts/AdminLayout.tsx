@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import { Outlet, Link, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { getToken, clearToken, getUser, setUser } from "@/api/client";
 import { getMe } from "@/api/endpoints";
-import { useAdminPendingCounts } from "@/api/hooks";
+import { useAdminPendingCounts, useAdminSiteSettings } from "@/api/hooks";
+import { SiteAnalyticsScripts } from "@/components/SiteAnalyticsScripts";
 import { useActivityTracker } from "@/hooks/useActivityTracker";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -195,6 +196,7 @@ function AdminLayoutInner() {
 
   // Pending counts for sidebar badges — polls every 30s
   const { data: countsData } = useAdminPendingCounts();
+  const { data: siteSettings } = useAdminSiteSettings();
   const counts: PendingCounts = {
     payout_accounts: countsData?.payout_accounts ?? 0,
     deposits: countsData?.deposits ?? 0,
@@ -296,6 +298,7 @@ function AdminLayoutInner() {
 
   return (
     <div className="min-h-screen flex bg-background">
+      <SiteAnalyticsScripts html={siteSettings?.google_analytics_script} />
       {/* Desktop Sidebar */}
       <aside className={cn(
         "hidden lg:flex flex-col admin-sidebar text-white transition-all duration-300",

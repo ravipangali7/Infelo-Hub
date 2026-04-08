@@ -772,7 +772,8 @@ class SiteSettingSerializer(serializers.ModelSerializer):
     class Meta:
         model = SiteSetting
         fields = ['id', 'name', 'logo', 'logo_url', 'title', 'subtitle', 'phone', 'whatsapp',
-                  'email', 'facebook', 'instagram', 'tiktok', 'youtube', 'created_at', 'updated_at']
+                  'email', 'facebook', 'instagram', 'tiktok', 'youtube', 'google_analytics_script',
+                  'created_at', 'updated_at']
 
     def get_logo_url(self, obj):
         request = self.context.get('request')

@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate } from "react-router-dom";
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useRef } from "react";
 import { ArrowLeft, Clock, Gift, Loader2, Plus, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -18,20 +18,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { ApiError } from "@/api/client";
 import { getToken } from "@/api/client";
+import type { CampaignProofInput } from "@/api/types";
 
-type ProofRow = {
+type ImagePick = {
   key: string;
-  link: string;
-  remarks: string;
-  image: File | null;
+  file: File;
+  preview: string;
 };
 
-function newProofRow(): ProofRow {
+function newImagePick(file: File): ImagePick {
   return {
     key: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
-    link: "",
-    remarks: "",
-    image: null,
+    file,
+    preview: URL.createObjectURL(file),
   };
 }
 
@@ -121,7 +120,11 @@ const CampaignDetail = () => {
   const isLoggedIn = !!getToken();
 
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [proofRows, setProofRows] = useState<ProofRow[]>(() => [newProofRow()]);
+  const [remarks, setRemarks] = useState("");
+  const [links, setLinks] = useState<string[]>([""]);
+  const [images, setImages] = useState<ImagePick[]>([]);
+  const [fileInputKey, setFileInputKey] = useState(0);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [submittingAll, setSubmittingAll] = useState(false);
 
   const campaignSubs = useMemo(() => {
@@ -136,8 +139,38 @@ const CampaignDetail = () => {
   const latestRejected = campaignSubs.find((s) => s.status === "rejected");
 
   const resetProofForm = useCallback(() => {
-    setProofRows([newProofRow()]);
+    setImages((prev) => {
+      prev.forEach((p) => URL.revokeObjectURL(p.preview));
+      return [];
+    });
+    setRemarks("");
+    setLinks([""]);
+    setFileInputKey((k) => k + 1);
   }, []);
+
+  const addLinkRow = () => setLinks((rows) => [...rows, ""]);
+  const updateLink = (index: number, value: string) => {
+    setLinks((rows) => rows.map((l, i) => (i === index ? value : l)));
+  };
+  const removeLinkRow = (index: number) => {
+    setLinks((rows) => (rows.length <= 1 ? rows : rows.filter((_, i) => i !== index)));
+  };
+
+  const onScreenshotsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const list = e.target.files;
+    if (!list?.length) return;
+    setImages((prev) => [...prev, ...Array.from(list, (f) => newImagePick(f))]);
+    setFileInputKey((k) => k + 1);
+    e.target.value = "";
+  };
+
+  const removeImagePick = (key: string) => {
+    setImages((prev) => {
+      const item = prev.find((p) => p.key === key);
+      if (item) URL.revokeObjectURL(item.preview);
+      return prev.filter((p) => p.key !== key);
+    });
+  };
 
   const handleOpenDialog = () => {
     resetProofForm();
@@ -149,33 +182,30 @@ const CampaignDetail = () => {
     if (!open) resetProofForm();
   };
 
-  const addRow = () => setProofRows((rows) => [...rows, newProofRow()]);
-  const removeRow = (key: string) =>
-    setProofRows((rows) => (rows.length <= 1 ? rows : rows.filter((r) => r.key !== key)));
-
-  const updateRow = (key: string, patch: Partial<Omit<ProofRow, "key">>) => {
-    setProofRows((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
-  };
-
   const handleConfirmSubmit = async () => {
     if (!campaign) return;
 
-    for (const row of proofRows) {
-      const l = row.link.trim();
-      if (!l) {
-        toast({
-          variant: "destructive",
-          title: "Missing proof details",
-          description: "Each proof needs a link (e.g. your reel URL).",
-        });
-        return;
-      }
+    const filledLinks = links.map((l) => l.trim()).filter(Boolean);
+    if (filledLinks.length === 0 && images.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Add a link or a screenshot",
+        description: "Paste at least one URL, or attach at least one image.",
+      });
+      return;
     }
 
-    const proof_items = proofRows.map((r) => ({
-      link: r.link.trim(),
-      remarks: r.remarks.trim(),
-    }));
+    const remarksTrim = remarks.trim();
+    let proof_items: CampaignProofInput[];
+    if (filledLinks.length > 0) {
+      proof_items = filledLinks.map((link, i) => ({
+        link,
+        title: "",
+        remarks: i === 0 ? remarksTrim : "",
+      }));
+    } else {
+      proof_items = [{ title: "Screenshots", link: "", remarks: remarksTrim }];
+    }
 
     setSubmittingAll(true);
     try {
@@ -184,12 +214,10 @@ const CampaignDetail = () => {
         proof_items,
       });
 
-      for (const row of proofRows) {
-        if (row.image) {
-          const fd = new FormData();
-          fd.append("image", row.image);
-          await createProof({ submissionId: submission.id, formData: fd });
-        }
+      for (const img of images) {
+        const fd = new FormData();
+        fd.append("image", img.file);
+        await createProof({ submissionId: submission.id, formData: fd });
       }
 
       toast({ title: "Submission received", description: "You are enrolled in this campaign." });
@@ -286,68 +314,101 @@ const CampaignDetail = () => {
             <DialogHeader>
               <DialogTitle>Submit proof</DialogTitle>
               <DialogDescription>
-                Add one or more proofs (e.g. reel link, title). Optional screenshot per row.
+                Add links to your posts, optional notes, and screenshots. You can attach several images.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="space-y-6 py-2">
-              {proofRows.map((row, index) => (
-                <div key={row.key} className="rounded-xl border border-border p-4 space-y-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-medium">Proof {index + 1}</span>
-                    {proofRows.length > 1 && (
+            <div className="space-y-5 py-2">
+              <div className="space-y-2">
+                <Label htmlFor="submit-remarks">Remarks (optional)</Label>
+                <Input
+                  id="submit-remarks"
+                  value={remarks}
+                  onChange={(e) => setRemarks(e.target.value)}
+                  placeholder="Anything reviewers should know"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <Label>Links</Label>
+                  <Button type="button" variant="outline" size="sm" className="h-8 gap-1" onClick={addLinkRow}>
+                    <Plus className="h-3.5 w-3.5" />
+                    Add link
+                  </Button>
+                </div>
+                <div className="space-y-2">
+                  {links.map((link, index) => (
+                    <div key={index} className="flex gap-2 items-start">
+                      <Input
+                        type="url"
+                        inputMode="url"
+                        value={link}
+                        onChange={(e) => updateLink(index, e.target.value)}
+                        placeholder="https://..."
+                        className="flex-1"
+                        aria-label={`Link ${index + 1}`}
+                      />
+                      {links.length > 1 ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="h-10 w-10 shrink-0 text-destructive"
+                          onClick={() => removeLinkRow(index)}
+                          aria-label={`Remove link ${index + 1}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      ) : (
+                        <span className="w-10 shrink-0" aria-hidden />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Screenshots (optional)</Label>
+                <input
+                  ref={fileInputRef}
+                  key={fileInputKey}
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  className="sr-only"
+                  onChange={onScreenshotsChange}
+                />
+                <div className="flex flex-wrap gap-2">
+                  {images.map((img) => (
+                    <div
+                      key={img.key}
+                      className="relative h-20 w-20 rounded-lg border border-border overflow-hidden bg-muted"
+                    >
+                      <img src={img.preview} alt="" className="h-full w-full object-cover" />
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant="destructive"
                         size="icon"
-                        className="h-8 w-8 shrink-0 text-destructive"
-                        onClick={() => removeRow(row.key)}
-                        aria-label="Remove proof"
+                        className="absolute top-0.5 right-0.5 h-6 w-6 rounded-full shadow-md"
+                        onClick={() => removeImagePick(img.key)}
+                        aria-label="Remove image"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3 w-3" />
                       </Button>
-                    )}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`link-${row.key}`}>Link</Label>
-                    <Input
-                      id={`link-${row.key}`}
-                      type="url"
-                      inputMode="url"
-                      value={row.link}
-                      onChange={(e) => updateRow(row.key, { link: e.target.value })}
-                      placeholder="https://..."
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`remarks-${row.key}`}>Remarks (optional)</Label>
-                    <Input
-                      id={`remarks-${row.key}`}
-                      value={row.remarks}
-                      onChange={(e) => updateRow(row.key, { remarks: e.target.value })}
-                      placeholder="Notes for reviewers"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`image-${row.key}`}>Screenshot (optional)</Label>
-                    <Input
-                      id={`image-${row.key}`}
-                      type="file"
-                      accept="image/*"
-                      className="cursor-pointer"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0] ?? null;
-                        updateRow(row.key, { image: f });
-                      }}
-                    />
-                  </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="h-20 w-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:bg-muted/60 transition-colors"
+                  >
+                    <Plus className="h-5 w-5" />
+                    Choose file
+                  </button>
                 </div>
-              ))}
-
-              <Button type="button" variant="outline" className="w-full gap-2" onClick={addRow}>
-                <Plus className="h-4 w-4" />
-                Add another proof
-              </Button>
+                <p className="text-xs text-muted-foreground">Tap Choose file again to add more images.</p>
+              </div>
             </div>
 
             <DialogFooter className="gap-2 sm:gap-0 flex-col sm:flex-row">

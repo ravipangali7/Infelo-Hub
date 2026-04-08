@@ -24,7 +24,8 @@ import { cn } from "@/lib/utils";
 import { getToken, getUser, setAuthRedirectReason } from "@/api/client";
 import { toast } from "@/hooks/use-toast";
 import { useActivityTracker } from "@/hooks/useActivityTracker";
-import { useNotificationUnreadCount } from "@/api/hooks";
+import { useNotificationUnreadCount, usePublicSiteSettings } from "@/api/hooks";
+import { SiteAnalyticsScripts } from "@/components/SiteAnalyticsScripts";
 import { useCart } from "@/contexts/CartContext";
 import logo from "@/assets/logo.png";
 import {
@@ -74,6 +75,7 @@ const ClientLayout = () => {
   const { itemCount } = useCart();
   const { data: unreadNotif } = useNotificationUnreadCount();
   const notifUnread = unreadNotif?.unread_count ?? 0;
+  const { data: publicSite } = usePublicSiteSettings();
 
   useActivityTracker({ platform: "client" });
 
@@ -111,6 +113,7 @@ const ClientLayout = () => {
 
   return (
     <div className="min-h-screen bg-background animated-bg">
+      <SiteAnalyticsScripts html={publicSite?.google_analytics_script} />
       {/* Desktop ecommerce header */}
       <header className="client-desktop-header hidden lg:block">
         <div className="client-page-content flex h-14 items-center gap-6 px-4 xl:px-10">

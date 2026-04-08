@@ -7,7 +7,8 @@ import { ImageFileField } from "@/components/ImageFileField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
-import { Globe, Phone, Mail, Facebook, Instagram } from "lucide-react";
+import { Globe, Phone, Mail, Facebook, Instagram, BarChart3 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 
 export default function SiteSettings() {
@@ -24,6 +25,7 @@ export default function SiteSettings() {
   const [instagram, setInstagram] = useState("");
   const [tiktok, setTiktok] = useState("");
   const [youtube, setYoutube] = useState("");
+  const [googleAnalyticsScript, setGoogleAnalyticsScript] = useState("");
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -39,6 +41,7 @@ export default function SiteSettings() {
       setInstagram(data.instagram ?? "");
       setTiktok(data.tiktok ?? "");
       setYoutube(data.youtube ?? "");
+      setGoogleAnalyticsScript(data.google_analytics_script ?? "");
     }
   }, [data]);
 
@@ -56,6 +59,7 @@ export default function SiteSettings() {
     fd.append("instagram", instagram.trim());
     fd.append("tiktok", tiktok.trim());
     fd.append("youtube", youtube.trim());
+    fd.append("google_analytics_script", googleAnalyticsScript);
     if (logoFile) fd.append("logo", logoFile);
 
     saveSiteSettings.mutate(fd, {
@@ -145,6 +149,29 @@ export default function SiteSettings() {
               <Label htmlFor="youtube">YouTube URL</Label>
               <Input id="youtube" value={youtube} onChange={(e) => setYoutube(e.target.value)} placeholder="https://youtube.com/@yourchannel" />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <BarChart3 className="w-5 h-5" /> Google Analytics
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Paste the full snippet from Google Analytics (including <code className="text-xs">&lt;script&gt;</code> tags).
+              It loads on the public app and on this admin panel.
+            </p>
+            <Label htmlFor="ga-script">Analytics script</Label>
+            <Textarea
+              id="ga-script"
+              value={googleAnalyticsScript}
+              onChange={(e) => setGoogleAnalyticsScript(e.target.value)}
+              placeholder={'e.g. <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXX"></script>\n<script>...</script>'}
+              rows={8}
+              className="font-mono text-xs"
+            />
           </CardContent>
         </Card>
 

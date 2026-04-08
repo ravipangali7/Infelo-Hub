@@ -782,6 +782,8 @@ export interface SiteSetting {
   instagram: string;
   tiktok: string;
   youtube: string;
+  /** Full HTML snippet (e.g. gtag script tags) from site settings */
+  google_analytics_script?: string;
   created_at?: string;
   updated_at?: string;
 }
@@ -798,6 +800,7 @@ export interface PublicSiteSetting {
   instagram?: string;
   tiktok?: string;
   youtube?: string;
+  google_analytics_script?: string;
 }
 
 /** Public app / APK info (same payload as Flutter update gate). */
