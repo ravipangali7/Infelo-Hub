@@ -1,0 +1,462 @@
+import { useParams, Link, useNavigate } from "react-router-dom";
+import { useState, useCallback, useMemo } from "react";
+import { ArrowLeft, Clock, Gift, Loader2, Plus, Trash2, Download } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { useCampaign, useSubmissions, useCreateSubmission, useCreateSubmissionProof, useProductById } from "@/api/hooks";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/hooks/use-toast";
+import { ApiError } from "@/api/client";
+import { getToken } from "@/api/client";
+
+type ProofRow = {
+  key: string;
+  link: string;
+  remarks: string;
+  image: File | null;
+};
+
+function newProofRow(): ProofRow {
+  return {
+    key: typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : String(Date.now() + Math.random()),
+    link: "",
+    remarks: "",
+    image: null,
+  };
+}
+
+function campaignImageDownloadName(campaignName: string, imageUrl: string): string {
+  try {
+    const u = new URL(imageUrl);
+    const seg = u.pathname.split("/").filter(Boolean).pop();
+    if (seg && /\.[a-z0-9]{2,5}$/i.test(seg)) return decodeURIComponent(seg);
+  } catch {
+    /* ignore */
+  }
+  const base =
+    campaignName
+      .replace(/[^\w\s.-]/g, "")
+      .trim()
+      .replace(/\s+/g, "-") || "campaign";
+  return `${base}.jpg`;
+}
+
+function CampaignImageDownloadButton({
+  url,
+  fileName,
+  className,
+}: {
+  url: string;
+  fileName: string;
+  className?: string;
+}) {
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+
+  const download = async () => {
+    setBusy(true);
+    try {
+      const res = await fetch(url, { mode: "cors" });
+      if (!res.ok) throw new Error("fetch failed");
+      const blob = await res.blob();
+      const blobUrl = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = fileName;
+      a.rel = "noopener";
+      a.click();
+      URL.revokeObjectURL(blobUrl);
+      toast({ title: "Download started" });
+    } catch {
+      try {
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = fileName;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        a.click();
+        toast({ title: "Opening image — use Save as if download did not start" });
+      } catch {
+        window.open(url, "_blank", "noopener,noreferrer");
+        toast({ variant: "destructive", title: "Could not download — try opening in a new tab" });
+      }
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={download}
+      disabled={busy}
+      aria-label="Download campaign image"
+    >
+      <Download className="w-3 h-3 shrink-0" />
+      Download
+    </button>
+  );
+}
+
+const CampaignDetail = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { data: campaign, isLoading, error } = useCampaign(id ? Number(id) : null);
+  const { data: submissionsData, isLoading: submissionsLoading } = useSubmissions();
+  const { data: relatedProduct } = useProductById(campaign?.product ?? null);
+  const { mutateAsync: createSubmission, isPending: submitPending } = useCreateSubmission();
+  const { mutateAsync: createProof } = useCreateSubmissionProof();
+  const isLoggedIn = !!getToken();
+
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [proofRows, setProofRows] = useState<ProofRow[]>(() => [newProofRow()]);
+  const [submittingAll, setSubmittingAll] = useState(false);
+
+  const campaignSubs = useMemo(() => {
+    if (!campaign) return [];
+    const submissions = submissionsData?.results ?? [];
+    return submissions
+      .filter((s) => s.campaign === campaign.id)
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [submissionsData, campaign]);
+
+  const blockingSubmission = campaignSubs.find((s) => s.status === "pending" || s.status === "approved");
+  const latestRejected = campaignSubs.find((s) => s.status === "rejected");
+
+  const resetProofForm = useCallback(() => {
+    setProofRows([newProofRow()]);
+  }, []);
+
+  const handleOpenDialog = () => {
+    resetProofForm();
+    setDialogOpen(true);
+  };
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open) resetProofForm();
+  };
+
+  const addRow = () => setProofRows((rows) => [...rows, newProofRow()]);
+  const removeRow = (key: string) =>
+    setProofRows((rows) => (rows.length <= 1 ? rows : rows.filter((r) => r.key !== key)));
+
+  const updateRow = (key: string, patch: Partial<Omit<ProofRow, "key">>) => {
+    setProofRows((rows) => rows.map((r) => (r.key === key ? { ...r, ...patch } : r)));
+  };
+
+  const handleConfirmSubmit = async () => {
+    if (!campaign) return;
+
+    for (const row of proofRows) {
+      const l = row.link.trim();
+      if (!l) {
+        toast({
+          variant: "destructive",
+          title: "Missing proof details",
+          description: "Each proof needs a link (e.g. your reel URL).",
+        });
+        return;
+      }
+    }
+
+    const proof_items = proofRows.map((r) => ({
+      link: r.link.trim(),
+      remarks: r.remarks.trim(),
+    }));
+
+    setSubmittingAll(true);
+    try {
+      const submission = await createSubmission({
+        campaign: campaign.id,
+        proof_items,
+      });
+
+      for (const row of proofRows) {
+        if (row.image) {
+          const fd = new FormData();
+          fd.append("image", row.image);
+          await createProof({ submissionId: submission.id, formData: fd });
+        }
+      }
+
+      toast({ title: "Submission received", description: "You are enrolled in this campaign." });
+      setDialogOpen(false);
+      resetProofForm();
+    } catch (e) {
+      const msg = e instanceof ApiError ? e.detail : "Could not submit. Try again.";
+      toast({ variant: "destructive", title: "Submission failed", description: msg });
+    } finally {
+      setSubmittingAll(false);
+    }
+  };
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4">
+        <p className="text-destructive">Campaign not found.</p>
+      </div>
+    );
+  }
+  if (isLoading || !campaign) {
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
+          <Link to="/campaigns" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <h1 className="text-lg font-semibold">Campaign Details</h1>
+        </header>
+        <div className="client-page-container client-page-content pb-8">
+          <Skeleton className="w-full aspect-video rounded-2xl mb-4" />
+          <Skeleton className="h-24 w-full rounded-xl" />
+        </div>
+      </div>
+    );
+  }
+
+  const imageUrl = campaign.image_url || campaign.image;
+  const isActive = campaign.status === "running";
+
+  const renderAction = () => {
+    if (!isActive) return null;
+
+    if (submissionsLoading) {
+      return <Skeleton className="h-12 w-full rounded-xl" />;
+    }
+
+    if (!isLoggedIn) {
+      return (
+        <Button className="w-full" size="lg" type="button" onClick={() => navigate("/login", { state: { from: `/campaign/${campaign.id}` } })}>
+          Log in to participate
+        </Button>
+      );
+    }
+
+    if (blockingSubmission) {
+      return (
+        <div className="floating-card p-4 space-y-3">
+          <div className="flex items-center justify-between gap-2">
+            <p className="text-sm text-muted-foreground">Your submission</p>
+            <Badge variant={blockingSubmission.status === "approved" ? "default" : "secondary"}>
+              {blockingSubmission.status_display ?? blockingSubmission.status}
+            </Badge>
+          </div>
+          <Button variant="outline" className="w-full" asChild>
+            <Link to={`/submission/${blockingSubmission.id}`}>View submission</Link>
+          </Button>
+          <Button variant="ghost" className="w-full text-muted-foreground" asChild>
+            <Link to="/campaigns?tab=submissions">My submissions</Link>
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {latestRejected && (
+          <div className="floating-card p-4 space-y-3 border-destructive/20">
+            <p className="text-sm text-muted-foreground">Your previous submission was rejected.</p>
+            {latestRejected.reject_reason && (
+              <p className="text-xs text-destructive line-clamp-3">{latestRejected.reject_reason}</p>
+            )}
+            <Button variant="outline" className="w-full" asChild>
+              <Link to={`/submission/${latestRejected.id}`}>View rejected submission</Link>
+            </Button>
+          </div>
+        )}
+        <Button className="w-full" size="lg" type="button" onClick={handleOpenDialog}>
+          Submit for this campaign
+        </Button>
+
+        <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
+          <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Submit proof</DialogTitle>
+              <DialogDescription>
+                Add one or more proofs (e.g. reel link, title). Optional screenshot per row.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6 py-2">
+              {proofRows.map((row, index) => (
+                <div key={row.key} className="rounded-xl border border-border p-4 space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-medium">Proof {index + 1}</span>
+                    {proofRows.length > 1 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 shrink-0 text-destructive"
+                        onClick={() => removeRow(row.key)}
+                        aria-label="Remove proof"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`link-${row.key}`}>Link</Label>
+                    <Input
+                      id={`link-${row.key}`}
+                      type="url"
+                      inputMode="url"
+                      value={row.link}
+                      onChange={(e) => updateRow(row.key, { link: e.target.value })}
+                      placeholder="https://..."
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`remarks-${row.key}`}>Remarks (optional)</Label>
+                    <Input
+                      id={`remarks-${row.key}`}
+                      value={row.remarks}
+                      onChange={(e) => updateRow(row.key, { remarks: e.target.value })}
+                      placeholder="Notes for reviewers"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor={`image-${row.key}`}>Screenshot (optional)</Label>
+                    <Input
+                      id={`image-${row.key}`}
+                      type="file"
+                      accept="image/*"
+                      className="cursor-pointer"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0] ?? null;
+                        updateRow(row.key, { image: f });
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              <Button type="button" variant="outline" className="w-full gap-2" onClick={addRow}>
+                <Plus className="h-4 w-4" />
+                Add another proof
+              </Button>
+            </div>
+
+            <DialogFooter className="gap-2 sm:gap-0 flex-col sm:flex-row">
+              <Button type="button" variant="outline" onClick={() => handleDialogOpenChange(false)}>
+                Cancel
+              </Button>
+              <Button type="button" onClick={handleConfirmSubmit} disabled={submitPending || submittingAll}>
+                {submitPending || submittingAll ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Submitting…
+                  </>
+                ) : (
+                  "Submit"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
+        <Link to="/campaigns" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <h1 className="text-lg font-semibold">Campaign Details</h1>
+      </header>
+
+      <div className="client-page-container client-page-content pb-8 space-y-6">
+        <div className="relative rounded-2xl overflow-hidden bg-muted">
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={campaign.name}
+              className="w-full h-64 sm:h-80 object-contain object-center"
+            />
+          ) : (
+            <div className="w-full h-64 sm:h-80 flex items-center justify-center">
+              <Gift className="w-12 h-12 text-muted-foreground" />
+            </div>
+          )}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
+          <div className="absolute bottom-4 left-4 right-4 text-white">
+            <Badge className="bg-success text-success-foreground border-0 mb-2">
+              <Clock className="w-3 h-3 mr-1" />
+              {isActive ? "Active" : campaign.status_display ?? campaign.status}
+            </Badge>
+            <h2 className="text-xl font-bold">{campaign.name}</h2>
+          </div>
+          {imageUrl && (
+            <CampaignImageDownloadButton
+              url={imageUrl}
+              fileName={campaignImageDownloadName(campaign.name, imageUrl)}
+              className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-md bg-black/50 px-2 py-1 text-xs text-white hover:bg-black/60 disabled:opacity-60"
+            />
+          )}
+        </div>
+
+        <div className="floating-card p-4 flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-accent/10 flex items-center justify-center">
+            <Gift className="w-7 h-7 text-accent" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm text-muted-foreground">Commission</p>
+            <p className="text-2xl font-bold text-accent">
+              {campaign.commission_type === "percentage" ? `${campaign.commission}%` : `रु ${campaign.commission}`}
+            </p>
+          </div>
+        </div>
+
+        {campaign.description && (
+          <div className="floating-card p-4">
+            <h3 className="font-semibold mb-2">About Campaign</h3>
+            <p className="text-sm text-muted-foreground">{campaign.description}</p>
+          </div>
+        )}
+
+        {relatedProduct && (
+          <button
+            type="button"
+            className="floating-card p-4 w-full text-left"
+            onClick={() => navigate(`/product/${relatedProduct.slug}`)}
+          >
+            <p className="text-sm text-muted-foreground mb-2">Related product</p>
+            <div className="flex items-center gap-3">
+              {(relatedProduct.image_url || relatedProduct.image) ? (
+                <img
+                  src={relatedProduct.image_url || relatedProduct.image}
+                  alt={relatedProduct.name}
+                  className="w-16 h-16 rounded-xl object-cover"
+                />
+              ) : null}
+              <div className="min-w-0">
+                <p className="font-medium truncate">{relatedProduct.name}</p>
+                <p className="text-xs text-muted-foreground line-clamp-2">{relatedProduct.short_description}</p>
+                <p className="text-sm font-semibold mt-1">रु {Number(relatedProduct.selling_price).toLocaleString()}</p>
+              </div>
+            </div>
+          </button>
+        )}
+
+        {renderAction()}
+      </div>
+    </div>
+  );
+};
+
+export default CampaignDetail;

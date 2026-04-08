@@ -1,0 +1,384 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Infelo Hub Design System - Modern Fintech + E-commerce */
+
+@layer base {
+  :root {
+    /* Core Brand Colors */
+    --background: 210 20% 98%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Primary - Deep Blue from Logo */
+    --primary: 221 83% 33%;
+    --primary-foreground: 0 0% 100%;
+    --primary-light: 221 83% 45%;
+    --primary-dark: 221 83% 25%;
+
+    /* Secondary - Cool Gray */
+    --secondary: 215 20% 95%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Accent - Vibrant Orange from Logo */
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+    --accent-light: 30 100% 60%;
+    --accent-dark: 20 90% 45%;
+
+    /* Muted */
+    --muted: 215 20% 95%;
+    --muted-foreground: 215 16% 47%;
+
+    /* Success/Earning */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+
+    /* Warning */
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+
+    /* Destructive */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    /* Border & Input */
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+
+    --radius: 0.75rem;
+
+    /* Glass Effect */
+    --glass-bg: 0 0% 100% / 0.7;
+    --glass-border: 0 0% 100% / 0.2;
+    --glass-blur: 20px;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(221 83% 33%) 0%, hsl(221 83% 45%) 100%);
+    --gradient-accent: linear-gradient(135deg, hsl(24 95% 53%) 0%, hsl(30 100% 60%) 100%);
+    --gradient-hero: linear-gradient(135deg, hsl(221 83% 33%) 0%, hsl(221 83% 25%) 50%, hsl(24 95% 53%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(210 20% 98%) 100%);
+    --gradient-wallet: linear-gradient(135deg, hsl(221 83% 28%) 0%, hsl(221 83% 38%) 100%);
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(221 83% 33% / 0.05);
+    --shadow-md: 0 4px 6px -1px hsl(221 83% 33% / 0.1), 0 2px 4px -2px hsl(221 83% 33% / 0.1);
+    --shadow-lg: 0 10px 15px -3px hsl(221 83% 33% / 0.1), 0 4px 6px -4px hsl(221 83% 33% / 0.1);
+    --shadow-xl: 0 20px 25px -5px hsl(221 83% 33% / 0.1), 0 8px 10px -6px hsl(221 83% 33% / 0.1);
+    --shadow-glow: 0 0 40px hsl(221 83% 53% / 0.15);
+    --shadow-accent: 0 4px 20px hsl(24 95% 53% / 0.3);
+    --shadow-card: 0 2px 20px hsl(221 83% 33% / 0.08);
+    --shadow-floating: 0 8px 32px hsl(221 83% 33% / 0.12);
+
+    /* Sidebar */
+    --sidebar-background: 221 83% 15%;
+    --sidebar-foreground: 0 0% 95%;
+    --sidebar-primary: 24 95% 53%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 221 70% 25%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 221 60% 25%;
+    --sidebar-ring: 24 95% 53%;
+  }
+
+  .dark {
+    --background: 222 47% 7%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 10%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 221 83% 55%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 98%;
+
+    --accent: 24 95% 53%;
+    --accent-foreground: 0 0% 100%;
+
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 33% 20%;
+    --input: 217 33% 20%;
+    --ring: 221 83% 55%;
+
+    --glass-bg: 222 47% 10% / 0.8;
+    --glass-border: 0 0% 100% / 0.1;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+  }
+}
+
+@layer components {
+  .client-page-container {
+    @apply px-4 lg:px-8 xl:px-10;
+  }
+
+  .client-page-content {
+    @apply mx-auto w-full max-w-7xl;
+  }
+
+  .client-desktop-card {
+    @apply lg:rounded-2xl lg:border lg:border-border/60 lg:bg-card/80 lg:shadow-sm;
+  }
+
+  /* Glass Card Effect */
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-lg;
+  }
+
+  .glass-card-strong {
+    @apply bg-white/90 backdrop-blur-2xl border border-white/30;
+    box-shadow: var(--shadow-floating);
+  }
+
+  /* Gradient Backgrounds */
+  .bg-gradient-primary {
+    background: var(--gradient-primary);
+  }
+
+  .bg-gradient-accent {
+    background: var(--gradient-accent);
+  }
+
+  .bg-gradient-hero {
+    background: var(--gradient-hero);
+  }
+
+  .bg-gradient-wallet {
+    background: var(--gradient-wallet);
+  }
+
+  /* Floating Card */
+  .floating-card {
+    @apply bg-card rounded-2xl;
+    box-shadow: var(--shadow-floating);
+  }
+
+  /* Wallet Card Special */
+  .wallet-card {
+    background: var(--gradient-wallet);
+    @apply text-white rounded-3xl p-6 relative overflow-hidden;
+    box-shadow: var(--shadow-xl);
+  }
+
+  .wallet-card::before {
+    content: '';
+    @apply absolute inset-0;
+    background: radial-gradient(circle at 80% 20%, hsl(24 95% 53% / 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 20% 80%, hsl(221 83% 55% / 0.2) 0%, transparent 50%);
+  }
+
+  /* Feature Grid Item (Quick Actions — square tile) */
+  .feature-grid-item {
+    @apply flex flex-col items-center justify-center gap-1 p-2 rounded-2xl bg-white/80 backdrop-blur-sm border border-white/50 transition-all duration-300 aspect-square w-full min-h-0 text-center;
+    box-shadow: var(--shadow-card);
+  }
+
+  .feature-grid-item:hover {
+    @apply scale-105;
+    box-shadow: var(--shadow-floating);
+  }
+
+  .feature-grid-item:active {
+    @apply scale-95;
+  }
+
+  /* Bottom Navigation */
+  .bottom-nav {
+    @apply fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-t border-white/30;
+    box-shadow: 0 -4px 20px hsl(221 83% 33% / 0.08);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .bottom-nav-item {
+    @apply flex flex-col items-center justify-center py-2 px-4 text-muted-foreground transition-all duration-200;
+  }
+
+  .bottom-nav-item.active {
+    @apply text-primary;
+  }
+
+  .bottom-nav-item.active svg {
+    @apply scale-110;
+  }
+
+  /* Product Card */
+  .product-card {
+    @apply bg-white rounded-2xl overflow-hidden transition-all duration-300;
+    box-shadow: var(--shadow-card);
+  }
+
+  .product-card:hover {
+    box-shadow: var(--shadow-floating);
+    @apply -translate-y-1;
+  }
+
+  /* Badge Styles */
+  .badge-earning {
+    @apply bg-success/10 text-success border-success/20;
+  }
+
+  .badge-affiliate {
+    @apply bg-accent/10 text-accent border-accent/20;
+  }
+
+  .badge-package {
+    @apply bg-primary/10 text-primary border-primary/20;
+  }
+
+  /* Stat Card */
+  .stat-card {
+    @apply bg-white rounded-2xl p-4 border border-border/50;
+    box-shadow: var(--shadow-sm);
+  }
+
+  /* Section Header */
+  .section-header {
+    @apply flex items-center justify-between mb-4;
+  }
+
+  .section-title {
+    @apply text-lg font-semibold text-foreground;
+  }
+
+  /* Admin Sidebar */
+  .admin-sidebar {
+    background: linear-gradient(180deg, hsl(221 83% 12%) 0%, hsl(221 83% 8%) 100%);
+  }
+
+  /* Animated Background */
+  .animated-bg {
+    background: linear-gradient(-45deg, hsl(221 83% 98%), hsl(210 20% 98%), hsl(24 95% 98%), hsl(221 83% 95%));
+    background-size: 400% 400%;
+    animation: gradient-shift 15s ease infinite;
+  }
+
+  @keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+
+  /* Pulse Animation for Wallet */
+  .pulse-ring {
+    @apply absolute rounded-full;
+    animation: pulse-ring 2s infinite;
+  }
+
+  @keyframes pulse-ring {
+    0% { transform: scale(0.8); opacity: 0.5; }
+    50% { transform: scale(1.2); opacity: 0; }
+    100% { transform: scale(0.8); opacity: 0; }
+  }
+
+  /* Hide scrollbar but allow scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Fixed desktop ecommerce header (client layout) */
+  .client-desktop-header {
+    @apply border-b border-border/60 bg-background/95 backdrop-blur-md;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+  }
+}
+
+/* Mobile-first adjustments */
+@media (max-width: 768px) {
+  .mobile-container {
+    @apply px-4;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --client-desktop-header-h: 3.5rem;
+  }
+
+  .client-main {
+    padding-top: var(--client-desktop-header-h);
+  }
+
+  .client-main > * {
+    min-height: calc(100vh - var(--client-desktop-header-h));
+  }
+
+  /* Page-level fixed top bars sit below global header */
+  .client-main > * .fixed.top-0 {
+    top: var(--client-desktop-header-h) !important;
+    left: 0 !important;
+    right: 0 !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  .client-main > * .fixed.bottom-0,
+  .client-main > * .fixed.bottom-16 {
+    left: 0 !important;
+    right: 0 !important;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  /* Sticky section headers align below fixed global header when stuck */
+  .client-main .sticky.top-0 {
+    top: var(--client-desktop-header-h);
+  }
+
+  .client-main > * > div[class*="px-4"],
+  .client-main > * > section[class*="px-4"] {
+    max-width: 1280px;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 2rem !important;
+    padding-right: 2rem !important;
+  }
+
+  .client-main .grid.grid-cols-2 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}

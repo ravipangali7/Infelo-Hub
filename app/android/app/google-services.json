@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1019606492797",
+    "project_id": "infelo-group",
+    "storage_bucket": "infelo-group.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1019606492797:android:9be70764447453240db314",
+        "android_client_info": {
+          "package_name": "com.infelo.infelohub"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCyUbviQC6gt0fp4vsjGHbxalygOIeG_UA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
