@@ -119,12 +119,12 @@ const menuGroups: MenuGroup[] = [
       { path: "/system/submissions", icon: ClipboardCheck, label: "Submissions", badgeKey: "submissions" },
     ],
   },
-  {
-    label: "Package",
-    items: [
-      { path: "/system/packages", icon: Box, label: "Packages" },
-    ],
-  },
+  // {
+  //   label: "Package",
+  //   items: [
+  //     { path: "/system/packages", icon: Box, label: "Packages" },
+  //   ],
+  // },
   {
     label: "Finance",
     items: [
