@@ -29,12 +29,13 @@ export function AdminPagination({ count, pageSize, page, basePath }: AdminPagina
   };
 
   return (
-    <div className="flex items-center justify-between px-2 py-4">
-      <p className="text-sm text-muted-foreground">
-        Page {page} of {totalPages} ({count} total)
+    <div className="flex flex-col gap-3 px-2 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-2">
+      <p className="text-center text-xs text-muted-foreground sm:text-left sm:text-sm">
+        Page {page} of {totalPages}
+        <span className="text-muted-foreground/80"> · {count} total</span>
       </p>
-      <Pagination>
-        <PaginationContent>
+      <Pagination className="mx-auto w-full justify-center sm:mx-0 sm:w-auto">
+        <PaginationContent className="flex-wrap justify-center gap-0.5">
           <PaginationItem>
             <PaginationPrevious
               href="#"
@@ -46,7 +47,7 @@ export function AdminPagination({ count, pageSize, page, basePath }: AdminPagina
             />
           </PaginationItem>
           <PaginationItem>
-            <span className="px-4 py-2 text-sm">
+            <span className="px-3 py-2 text-xs tabular-nums sm:px-4 sm:text-sm">
               {page} / {totalPages}
             </span>
           </PaginationItem>

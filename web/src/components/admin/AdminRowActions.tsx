@@ -54,17 +54,18 @@ export function AdminRowActions({
   const hasActions = viewHref || editHref || onEdit || onDelete || onPassword;
   if (!hasActions) return null;
 
-  const iconButtonClass = "h-8 w-8 md:h-9 md:w-9";
+  const iconButtonClass = "h-10 w-10 min-h-10 min-w-10 md:h-9 md:w-9 md:min-h-0 md:min-w-0";
+  const iconClass = "h-4 w-4 md:h-4 md:w-4";
 
   return (
     <>
-      <div className="flex items-center gap-0.5 md:gap-1">
+      <div className="flex items-center gap-0.5 sm:gap-1 md:gap-1">
         {viewHref && (
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className={iconButtonClass} asChild>
                 <Link to={viewHref} aria-label="View">
-                  <Eye className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <Eye className={iconClass} />
                 </Link>
               </Button>
             </TooltipTrigger>
@@ -76,7 +77,7 @@ export function AdminRowActions({
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className={iconButtonClass} asChild>
                 <Link to={editHref} aria-label="Edit">
-                  <Pencil className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                  <Pencil className={iconClass} />
                 </Link>
               </Button>
             </TooltipTrigger>
@@ -87,7 +88,7 @@ export function AdminRowActions({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className={iconButtonClass} onClick={onEdit} aria-label="Edit">
-                <Pencil className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                <Pencil className={iconClass} />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Edit</TooltipContent>
@@ -97,7 +98,7 @@ export function AdminRowActions({
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" className={iconButtonClass} onClick={onPassword} aria-label="Change password">
-                <Key className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                <Key className={iconClass} />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Change password</TooltipContent>
@@ -113,7 +114,7 @@ export function AdminRowActions({
                 onClick={handleDeleteClick}
                 aria-label="Delete"
               >
-                <Trash2 className="h-3.5 w-3.5 md:h-4 md:w-4" />
+                <Trash2 className={iconClass} />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Delete</TooltipContent>

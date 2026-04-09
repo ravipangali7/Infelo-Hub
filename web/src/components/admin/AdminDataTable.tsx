@@ -45,6 +45,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Fragment, useState, type CSSProperties } from "react";
+import { cn } from "@/lib/utils";
 
 const IMAGE_KEYS = ["image_url", "logo_url", "thumbnail_url", "banner_url", "image", "logo", "thumbnail", "banner"] as const;
 
@@ -71,6 +72,11 @@ export interface AdminDataTableColumn<T> {
     getValue: (row: T) => boolean;
     label?: string;
     onConfirm: (row: T, newValue: boolean) => Promise<void> | void;
+  };
+  /** Mobile card layout overrides (list view below `md` only). */
+  mobile?: {
+    fullWidth?: boolean;
+    hideOnMobile?: boolean;
   };
 }
 
@@ -109,6 +115,103 @@ function renderCellContent<T>(
   }
   if (col.render) return col.render(row);
   return (row as Record<string, unknown>)[col.id] as React.ReactNode;
+}
+
+function AdminMobileRowCard<T>({
+  row,
+  tableColumns,
+  handleToggleClick,
+}: {
+  row: T;
+  tableColumns: AdminDataTableColumn<T>[];
+  handleToggleClick: (row: T, column: AdminDataTableColumn<T>, checked: boolean) => void;
+}) {
+  const visible = tableColumns.filter((c) => !c.mobile?.hideOnMobile);
+  const actionsCol = visible.find((c) => c.id === "actions");
+  const idCol = visible.find((c) => c.id === "id");
+  const statusCol = visible.find((c) => c.id === "status");
+  const amountCol = visible.find((c) => c.id === "amount");
+  const imageCol = visible.find((c) => c.id === "image");
+  const userCols = visible.filter((c) => c.id === "user" || c.id === "user_col");
+  const detailCols = visible.filter(
+    (c) =>
+      c.id !== "actions" &&
+      c.id !== "id" &&
+      c.id !== "status" &&
+      c.id !== "amount" &&
+      c.id !== "user" &&
+      c.id !== "user_col" &&
+      c.id !== "image"
+  );
+
+  const showHeader = Boolean(imageCol || idCol || statusCol);
+  const hasMetaGrid = detailCols.length > 0;
+
+  return (
+    <div className="rounded-xl border border-border/80 bg-card p-3 shadow-sm space-y-2 text-sm">
+      {showHeader ? (
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            {imageCol ? (
+              <div className="shrink-0 [&_img]:h-11 [&_img]:w-11 [&_img]:rounded-lg">
+                {renderCellContent(row, imageCol, handleToggleClick)}
+              </div>
+            ) : null}
+            {idCol ? (
+              <div className="min-w-0 text-base font-semibold leading-tight">
+                {renderCellContent(row, idCol, handleToggleClick)}
+              </div>
+            ) : null}
+          </div>
+          {statusCol ? (
+            <div className="shrink-0 pt-0.5">{renderCellContent(row, statusCol, handleToggleClick)}</div>
+          ) : null}
+        </div>
+      ) : null}
+
+      {userCols.length > 0 ? (
+        <div className="min-w-0 space-y-1">
+          {userCols.map((col) => (
+            <div key={col.id} className="flex flex-wrap items-baseline gap-x-2 gap-y-0">
+              <span className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{col.label}</span>
+              <div className="min-w-0 flex-1 text-sm">{renderCellContent(row, col, handleToggleClick)}</div>
+            </div>
+          ))}
+        </div>
+      ) : null}
+
+      {amountCol ? (
+        <div className="text-lg font-semibold leading-snug tracking-tight">
+          {renderCellContent(row, amountCol, handleToggleClick)}
+        </div>
+      ) : null}
+
+      {hasMetaGrid ? (
+        <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 pt-0.5">
+          {detailCols.map((col) => {
+            const full = Boolean(col.toggle || col.mobile?.fullWidth);
+            return (
+              <div
+                key={col.id}
+                className={cn("min-w-0 space-y-0.5", full && "col-span-2")}
+              >
+                <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">{col.label}</p>
+                <div className="min-w-0 break-words text-sm leading-snug">
+                  {renderCellContent(row, col, handleToggleClick)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : null}
+
+      {actionsCol ? (
+        <div className="mt-1 flex flex-wrap items-center gap-2 border-t border-border/60 pt-2.5">
+          {renderCellContent(row, actionsCol, handleToggleClick)}
+        </div>
+      ) : null}
+    </div>
+  );
 }
 
 function SortableAdminTableRow<T>({
@@ -318,17 +421,17 @@ export function AdminDataTable<T>({
       </div>
 
       {/* Mobile */}
-      <div className="md:hidden space-y-3">
+      <div className="md:hidden space-y-2">
         {sortableCols.length > 0 && onOrderByChange && (
-          <div className="space-y-1.5">
-            <Label htmlFor="admin-table-sort" className="text-xs text-muted-foreground">
+          <div className="space-y-1 pb-0.5">
+            <Label htmlFor="admin-table-sort" className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">
               Sort by
             </Label>
             <Select
               value={orderBy && orderBy.length > 0 ? orderBy : SORT_NONE}
               onValueChange={(v) => onOrderByChange(v === SORT_NONE ? "" : v)}
             >
-              <SelectTrigger id="admin-table-sort" className="h-9 text-sm">
+              <SelectTrigger id="admin-table-sort" className="h-9 rounded-lg text-sm">
                 <SelectValue placeholder="Default" />
               </SelectTrigger>
               <SelectContent>
@@ -347,19 +450,12 @@ export function AdminDataTable<T>({
           <p className="text-center text-sm text-muted-foreground py-8">{emptyMessage}</p>
         ) : (
           data.map((row) => (
-            <div
+            <AdminMobileRowCard
               key={keyFn(row)}
-              className="rounded-lg border border-border bg-card p-3 space-y-2 text-sm"
-            >
-              {tableColumns.map((col) => (
-                <div key={col.id} className="space-y-0.5">
-                  <p className="text-xs font-medium text-muted-foreground">{col.label}</p>
-                  <div className="min-w-0 break-words">
-                    {renderCellContent(row, col, handleToggleClick)}
-                  </div>
-                </div>
-              ))}
-            </div>
+              row={row}
+              tableColumns={tableColumns}
+              handleToggleClick={handleToggleClick}
+            />
           ))
         )}
       </div>
