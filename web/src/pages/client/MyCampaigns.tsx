@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Gift, Clock, CheckCircle2, XCircle, ChevronRight, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +9,7 @@ import type { Campaign } from "@/api/types";
 import { getToken } from "@/api/client";
 
 const MyCampaigns = () => {
+  const { t } = useTranslation("pages");
   const isLoggedIn = !!getToken();
   const [searchParams, setSearchParams] = useSearchParams();
   const mainTab = isLoggedIn && searchParams.get("tab") === "submissions" ? "submissions" : "browse";
@@ -89,14 +91,14 @@ const MyCampaigns = () => {
             <h3 className="font-semibold truncate">{campaign.name}</h3>
             {hasSubmission && (
               <Badge variant="outline" className="text-[10px]">
-                Submitted
+                {t("campaigns.submittedBadge")}
               </Badge>
             )}
           </div>
           <p className="text-sm text-muted-foreground">
             {campaign.commission_type === "percentage"
-              ? `Up to ${campaign.commission}%`
-              : `Earn up to रु ${campaign.commission}`}
+              ? t("campaigns.commissionUpToPct", { pct: String(campaign.commission) })
+              : t("campaigns.commissionEarnUpTo", { amount: String(campaign.commission) })}
           </p>
         </div>
         <div
@@ -137,7 +139,7 @@ const MyCampaigns = () => {
         <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">Campaigns</h1>
+        <h1 className="text-lg font-semibold">{t("campaigns.myCampaignsTitle")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-8">
@@ -152,11 +154,11 @@ const MyCampaigns = () => {
           <TabsList className="w-full bg-muted/50 p-1 rounded-xl mb-4">
             <TabsTrigger value="browse" className="flex-1 rounded-lg gap-1.5">
               <Megaphone className="w-4 h-4" />
-              Campaigns
+              {t("campaigns.tabBrowse")}
             </TabsTrigger>
             {isLoggedIn && (
               <TabsTrigger value="submissions" className="flex-1 rounded-lg">
-                My submissions
+                {t("campaigns.tabSubmissions")}
               </TabsTrigger>
             )}
           </TabsList>
@@ -166,18 +168,18 @@ const MyCampaigns = () => {
               browseSkeleton
             ) : campaignsError ? (
               <div className="floating-card p-6 text-center text-destructive text-sm">
-                Failed to load campaigns. Please try again later.
+                {t("campaigns.loadCampaignsFailed")}
               </div>
             ) : (
               <>
                 <section>
                   <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-                    Running
+                    {t("campaigns.sectionRunning")}
                   </h2>
                   <div className="space-y-3">
                     {running.length === 0 ? (
                       <div className="floating-card p-8 text-center text-muted-foreground text-sm">
-                        No running campaigns right now.
+                        {t("campaigns.noRunning")}
                       </div>
                     ) : (
                       running.map(renderCampaignRow)
@@ -187,12 +189,12 @@ const MyCampaigns = () => {
 
                 <section>
                   <h2 className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">
-                    Coming soon
+                    {t("campaigns.sectionComingSoon")}
                   </h2>
                   <div className="space-y-3">
                     {coming.length === 0 ? (
                       <div className="floating-card p-8 text-center text-muted-foreground text-sm">
-                        No upcoming campaigns.
+                        {t("campaigns.noUpcoming")}
                       </div>
                     ) : (
                       coming.map(renderCampaignRow)
@@ -207,7 +209,7 @@ const MyCampaigns = () => {
           <TabsContent value="submissions" className="space-y-4 mt-0">
             {submissionsError ? (
               <div className="floating-card p-6 text-center text-destructive text-sm">
-                Failed to load your submissions.
+                {t("campaigns.loadSubmissionsFailed")}
               </div>
             ) : submissionsLoading ? (
               submissionsSkeleton
@@ -215,23 +217,23 @@ const MyCampaigns = () => {
               <Tabs defaultValue="all" className="w-full">
                 <TabsList className="w-full bg-muted/50 p-1 rounded-xl mb-4 flex flex-wrap h-auto gap-1">
                   <TabsTrigger value="all" className="flex-1 min-w-[4.5rem] rounded-lg text-xs sm:text-sm">
-                    All
+                    {t("campaigns.tabAll")}
                   </TabsTrigger>
                   <TabsTrigger value="active" className="flex-1 min-w-[4.5rem] rounded-lg text-xs sm:text-sm">
-                    Active
+                    {t("campaigns.tabActive")}
                   </TabsTrigger>
                   <TabsTrigger value="completed" className="flex-1 min-w-[4.5rem] rounded-lg text-xs sm:text-sm">
-                    Completed
+                    {t("campaigns.tabCompleted")}
                   </TabsTrigger>
                   <TabsTrigger value="rejected" className="flex-1 min-w-[4.5rem] rounded-lg text-xs sm:text-sm">
-                    Rejected
+                    {t("campaigns.tabRejected")}
                   </TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="all" className="space-y-4">
                   {submissions.length === 0 ? (
                     <div className="floating-card p-8 text-center text-muted-foreground text-sm">
-                      You have not submitted to any campaign yet. Open the Campaigns tab to join one.
+                      {t("campaigns.emptySubmissions")}
                     </div>
                   ) : (
                     submissions.map(renderSubmissionCard)
@@ -241,7 +243,7 @@ const MyCampaigns = () => {
                 <TabsContent value="active" className="space-y-4">
                   {active.length === 0 ? (
                     <div className="floating-card p-8 text-center text-muted-foreground text-sm">
-                      No submissions awaiting review.
+                      {t("campaigns.emptyActive")}
                     </div>
                   ) : (
                     active.map(renderSubmissionCard)
@@ -251,7 +253,7 @@ const MyCampaigns = () => {
                 <TabsContent value="completed" className="space-y-4">
                   {completed.length === 0 ? (
                     <div className="floating-card p-8 text-center text-muted-foreground text-sm">
-                      No approved submissions yet.
+                      {t("campaigns.emptyCompleted")}
                     </div>
                   ) : (
                     completed.map(renderSubmissionCard)
@@ -261,7 +263,7 @@ const MyCampaigns = () => {
                 <TabsContent value="rejected" className="space-y-4">
                   {rejected.length === 0 ? (
                     <div className="floating-card p-8 text-center text-muted-foreground text-sm">
-                      No rejected submissions.
+                      {t("campaigns.emptyRejected")}
                     </div>
                   ) : (
                     rejected.map(renderSubmissionCard)

@@ -128,6 +128,7 @@ import { CartProvider } from "./contexts/CartContext";
 import ScrollToTop from "./components/ScrollToTop";
 import { getToken } from "./api/client";
 import FloatingWhatsAppButton from "./components/FloatingWhatsAppButton";
+import { I18nHtmlLang } from "./components/I18nHtmlLang";
 
 const queryClient = new QueryClient();
 
@@ -146,6 +147,7 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <I18nHtmlLang />
         <ScrollToTop />
         <FloatingWhatsAppButton />
         <Routes>

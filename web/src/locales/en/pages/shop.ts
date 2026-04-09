@@ -1,0 +1,17 @@
+export default {
+  title: "Shop",
+  searchPlaceholder: "Search products...",
+  featuredProducts: "Featured Products",
+  allProducts: "All Products",
+  noProducts: "No products found",
+  campaignHighlights: "Campaign Highlights",
+  viewAllLower: "View all",
+  trustedTitle: "Trusted by happy customers",
+  trustedBody: "Real customer ratings and reviews will appear here when available.",
+  outOfStock: "Out of Stock",
+  inStock: "In stock",
+  affiliateShort: "Affiliate",
+  affPercent: "{{pct}}% Aff",
+  affFixed: "रु {{amt}} Aff",
+  rewardSuffix: "reward",
+} as const;

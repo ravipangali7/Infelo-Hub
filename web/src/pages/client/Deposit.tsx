@@ -1,4 +1,5 @@
 import { useState, useEffect, type ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload, Copy, Check, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,7 +19,7 @@ const PAYMENT_METHOD_ORDER: PaymentMethod[] = ["esewa", "khalti", "bank"];
 
 function CopyTextButton({
   text,
-  label = "Copy",
+  label,
   className,
 }: {
   text: string;
@@ -26,18 +27,20 @@ function CopyTextButton({
   className?: string;
 }) {
   const { toast } = useToast();
+  const { t } = useTranslation(["pages", "common"]);
   const [ok, setOk] = useState(false);
+  const displayLabel = label ?? t("common:copy");
 
   const copy = async () => {
-    const t = text.trim();
-    if (!t) return;
+    const raw = text.trim();
+    if (!raw) return;
     try {
-      await navigator.clipboard.writeText(t);
+      await navigator.clipboard.writeText(raw);
       setOk(true);
-      toast({ title: "Copied to clipboard" });
+      toast({ title: t("pages:deposit.copied") });
       window.setTimeout(() => setOk(false), 2000);
     } catch {
-      toast({ variant: "destructive", title: "Could not copy" });
+      toast({ variant: "destructive", title: t("pages:deposit.couldNotCopy") });
     }
   };
 
@@ -49,16 +52,17 @@ function CopyTextButton({
       className={cn("shrink-0 gap-1.5", className)}
       onClick={copy}
       disabled={!text.trim()}
-      title={label}
+      title={displayLabel}
     >
       {ok ? <Check className="h-4 w-4 text-success shrink-0" /> : <Copy className="h-4 w-4 shrink-0" />}
-      <span className="text-xs font-medium leading-none">{label}</span>
+      <span className="text-xs font-medium leading-none">{displayLabel}</span>
     </Button>
   );
 }
 
 function QrDownloadButton({ url, fileName }: { url: string; fileName: string }) {
   const { toast } = useToast();
+  const { t } = useTranslation("pages");
   const [busy, setBusy] = useState(false);
 
   const download = async () => {
@@ -74,7 +78,7 @@ function QrDownloadButton({ url, fileName }: { url: string; fileName: string }) 
       a.rel = "noopener";
       a.click();
       URL.revokeObjectURL(blobUrl);
-      toast({ title: "Download started" });
+      toast({ title: t("deposit.downloadStarted") });
     } catch {
       try {
         const a = document.createElement("a");
@@ -83,10 +87,10 @@ function QrDownloadButton({ url, fileName }: { url: string; fileName: string }) 
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         a.click();
-        toast({ title: "Opening image — use Save as if download did not start" });
+        toast({ title: t("deposit.openingImage") });
       } catch {
         window.open(url, "_blank", "noopener,noreferrer");
-        toast({ variant: "destructive", title: "Could not download — try opening in a new tab" });
+        toast({ variant: "destructive", title: t("deposit.couldNotDownload") });
       }
     } finally {
       setBusy(false);
@@ -96,7 +100,7 @@ function QrDownloadButton({ url, fileName }: { url: string; fileName: string }) 
   return (
     <Button type="button" variant="outline" size="sm" className="gap-1.5 w-full sm:w-auto" onClick={download} disabled={busy}>
       <Download className="h-4 w-4 shrink-0" />
-      <span className="text-xs font-medium">Save QR image</span>
+      <span className="text-xs font-medium">{t("deposit.saveQrImage")}</span>
     </Button>
   );
 }
@@ -131,24 +135,32 @@ function StepSection({
   );
 }
 
-function payElsewhereHint(method: PaymentMethod, amountStr: string, minD: number, maxD: number) {
+function payElsewhereHint(
+  method: PaymentMethod,
+  amountStr: string,
+  minD: number,
+  maxD: number,
+  t: (key: string, opts?: { amt: string }) => string,
+) {
   const amt = Number(amountStr);
-  const amtOk = amountStr && !Number.isNaN(amt) && amt >= minD && amt <= maxD;
-  const amtText = amtOk ? `रु ${amt.toLocaleString()}` : "the same amount you entered in step 1";
+  const amtOk = Boolean(amountStr && !Number.isNaN(amt) && amt >= minD && amt <= maxD);
+  const amtText = amtOk ? `रु ${amt.toLocaleString()}` : t("deposit.payHintAmountFallback");
 
   switch (method) {
     case "esewa":
-      return `Open the eSewa app and send ${amtText} to the ID below (Send money). When it succeeds, take a screenshot of the confirmation — you will upload it in the last step.`;
+      return t("deposit.payHintEsewa", { amt: amtText });
     case "khalti":
-      return `Open the Khalti app and send ${amtText} to the ID below. When it succeeds, take a screenshot of the confirmation — you will upload it in the last step.`;
+      return t("deposit.payHintKhalti", { amt: amtText });
     case "bank":
-      return `Transfer ${amtText} using the bank details below (mobile banking, branch, or ATM). When the transfer is done, take a screenshot of the receipt or success screen — you will upload it in the last step.`;
+      return t("deposit.payHintBank", { amt: amtText });
     default:
       return "";
   }
 }
 
 const Deposit = () => {
+  const { t } = useTranslation("pages");
+  const { t: tCommon } = useTranslation("common");
   const [showForm, setShowForm] = useState(false);
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<PaymentMethod>("esewa");
@@ -195,17 +207,17 @@ const Deposit = () => {
   if (walletError) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Failed to load wallet.</p>
+        <p className="text-destructive">{t("deposit.failedLoad")}</p>
       </div>
     );
   }
 
   const bankCopyAllText = d
     ? [
-        d.bank_name && `Bank: ${d.bank_name}`,
-        d.bank_branch && `Branch: ${d.bank_branch}`,
-        d.bank_account_no && `Account number: ${d.bank_account_no}`,
-        d.bank_account_holder_name && `Account holder: ${d.bank_account_holder_name}`,
+        d.bank_name && `${t("deposit.bankName")}: ${d.bank_name}`,
+        d.bank_branch && `${t("deposit.branch")}: ${d.bank_branch}`,
+        d.bank_account_no && `${t("deposit.accountNumber")}: ${d.bank_account_no}`,
+        d.bank_account_holder_name && `${t("deposit.accountHolder")}: ${d.bank_account_holder_name}`,
       ]
         .filter(Boolean)
         .join("\n")
@@ -217,17 +229,17 @@ const Deposit = () => {
         <Link to="/wallet" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">Deposit</h1>
+        <h1 className="text-lg font-semibold">{t("deposit.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-8 space-y-6">
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground">Request history</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">{t("deposit.requestHistory")}</h2>
           {prLoading ? (
             <Skeleton className="h-24 w-full rounded-xl" />
           ) : depositRequests.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8 rounded-xl border border-dashed border-border">
-              No deposit requests yet
+              {t("deposit.noRequests")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -256,10 +268,10 @@ const Deposit = () => {
 
         <div className="space-y-2">
           <Button type="button" className="w-full h-12" onClick={() => setShowForm(true)}>
-            Add Fund
+            {t("deposit.addFund")}
           </Button>
           <p className="text-center text-xs text-muted-foreground leading-relaxed px-1">
-            You pay in eSewa, Khalti, or your bank first, then upload a screenshot here so we can verify and credit your wallet.
+            {t("deposit.footerHint")}
           </p>
         </div>
 
@@ -270,29 +282,31 @@ const Deposit = () => {
             )}
           >
             <DialogHeader className="shrink-0 space-y-1 border-b border-border px-4 pb-3 pt-1 text-left sm:px-6">
-              <DialogTitle>Add fund</DialogTitle>
+              <DialogTitle>{t("deposit.dialogTitle")}</DialogTitle>
               <DialogDescription>
-                Four quick steps: amount → how you pay → pay outside this app → upload proof. Allowed range: रु{" "}
-                {minDeposit.toLocaleString()} – रु {maxDeposit.toLocaleString()}.
+                {t("deposit.dialogDescription", { min: minDeposit.toLocaleString(), max: maxDeposit.toLocaleString() })}
               </DialogDescription>
             </DialogHeader>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
               <div className="rounded-xl border border-primary/20 bg-primary/5 px-3 py-3 text-xs text-foreground/90 leading-relaxed">
-                <p className="font-medium text-foreground mb-1.5">How this works</p>
+                <p className="font-medium text-foreground mb-1.5">{t("deposit.howThisWorks")}</p>
                 <ol className="list-decimal list-inside space-y-1 text-muted-foreground">
-                  <li>Enter the amount and choose eSewa, Khalti, or bank.</li>
-                  <li>Complete the payment in that app or bank — stay on the success or receipt screen.</li>
-                  <li>Return here and upload a clear screenshot, then submit.</li>
+                  <li>{t("deposit.howStep1")}</li>
+                  <li>{t("deposit.howStep2")}</li>
+                  <li>{t("deposit.howStep3")}</li>
                 </ol>
               </div>
 
               <StepSection
                 step={1}
-                title="Amount"
-                description={`Must be between रु ${minDeposit.toLocaleString()} and रु ${maxDeposit.toLocaleString()}.`}
+                title={t("deposit.stepAmount")}
+                description={t("deposit.amountDescription", {
+                  min: minDeposit.toLocaleString(),
+                  max: maxDeposit.toLocaleString(),
+                })}
               >
                 <Label htmlFor="amount" className="sr-only">
-                  Amount in rupees
+                  {t("deposit.amountSrOnly")}
                 </Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">रु</span>
@@ -319,9 +333,13 @@ const Deposit = () => {
                 </div>
               </StepSection>
 
-              <StepSection step={2} title="Payment method" description="Pick where you will send money from.">
+              <StepSection
+                step={2}
+                title={t("deposit.stepPaymentMethod")}
+                description={t("deposit.paymentMethodDescription")}
+              >
                 <Label id="payment-method-label" className="sr-only">
-                  Payment method
+                  {t("deposit.paymentMethodSrOnly")}
                 </Label>
                 <div role="tablist" aria-labelledby="payment-method-label" className="flex flex-wrap gap-2">
                   {PAYMENT_METHOD_ORDER.map((id) => {
@@ -350,19 +368,19 @@ const Deposit = () => {
                 step={3}
                 title={
                   method === "esewa"
-                    ? "Pay in eSewa"
+                    ? t("deposit.payEsewa")
                     : method === "khalti"
-                      ? "Pay in Khalti"
-                      : "Bank transfer"
+                      ? t("deposit.payKhalti")
+                      : t("deposit.payBank")
                 }
-                description={payElsewhereHint(method, amount, minDeposit, maxDeposit)}
+                description={payElsewhereHint(method, amount, minDeposit, maxDeposit, t)}
               >
                 {walletLoading ? (
                   <Skeleton className="h-48 w-full rounded-xl" />
                 ) : method === "esewa" && d ? (
                   <div className="space-y-4">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">eSewa phone / ID</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("deposit.esewaPhone")}</p>
                       <div className="flex items-stretch gap-2">
                         <p className="flex-1 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm break-all min-h-[2.5rem]">
                           {d.esewa_phone || "—"}
@@ -371,8 +389,8 @@ const Deposit = () => {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <p className="text-xs font-medium text-foreground">QR code</p>
-                      <p className="text-xs text-muted-foreground -mt-2">Scan with eSewa, or save the image and scan from your photos.</p>
+                      <p className="text-xs font-medium text-foreground">{t("deposit.qrCode")}</p>
+                      <p className="text-xs text-muted-foreground -mt-2">{t("deposit.esewaQrHelp")}</p>
                       {d.esewa_qr_url ? (
                         <>
                           <img
@@ -384,7 +402,7 @@ const Deposit = () => {
                         </>
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-8 rounded-xl border border-dashed border-border">
-                          No QR image configured. Ask admin to upload eSewa QR in settings.
+                          {t("deposit.noEsewaQr")}
                         </p>
                       )}
                     </div>
@@ -392,7 +410,7 @@ const Deposit = () => {
                 ) : method === "khalti" && d ? (
                   <div className="space-y-4">
                     <div>
-                      <p className="text-xs text-muted-foreground mb-1">Khalti phone / ID</p>
+                      <p className="text-xs text-muted-foreground mb-1">{t("deposit.khaltiPhone")}</p>
                       <div className="flex items-stretch gap-2">
                         <p className="flex-1 rounded-lg border border-border bg-muted/40 px-3 py-2 text-sm break-all min-h-[2.5rem]">
                           {d.khalti_phone || "—"}
@@ -401,8 +419,8 @@ const Deposit = () => {
                       </div>
                     </div>
                     <div className="space-y-3">
-                      <p className="text-xs font-medium text-foreground">QR code</p>
-                      <p className="text-xs text-muted-foreground -mt-2">Scan with Khalti, or save the image and scan from your photos.</p>
+                      <p className="text-xs font-medium text-foreground">{t("deposit.qrCode")}</p>
+                      <p className="text-xs text-muted-foreground -mt-2">{t("deposit.khaltiQrHelp")}</p>
                       {d.khalti_qr_url ? (
                         <>
                           <img
@@ -414,7 +432,7 @@ const Deposit = () => {
                         </>
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-8 rounded-xl border border-dashed border-border">
-                          No QR image configured. Ask admin to upload Khalti QR in settings.
+                          {t("deposit.noKhaltiQr")}
                         </p>
                       )}
                     </div>
@@ -423,15 +441,15 @@ const Deposit = () => {
                   <div className="space-y-4">
                     {bankCopyAllText ? (
                       <div className="flex justify-end">
-                        <CopyTextButton text={bankCopyAllText} label="Copy all" />
+                        <CopyTextButton text={bankCopyAllText} label={tCommon("copyAll")} />
                       </div>
                     ) : null}
                     <div className="space-y-3 text-sm">
                       {[
-                        { key: "bank", label: "Bank name", value: d.bank_name },
-                        { key: "branch", label: "Branch", value: d.bank_branch },
-                        { key: "acc", label: "Account number", value: d.bank_account_no },
-                        { key: "holder", label: "Account holder", value: d.bank_account_holder_name },
+                        { key: "bank", label: t("deposit.bankName"), value: d.bank_name },
+                        { key: "branch", label: t("deposit.branch"), value: d.bank_branch },
+                        { key: "acc", label: t("deposit.accountNumber"), value: d.bank_account_no },
+                        { key: "holder", label: t("deposit.accountHolder"), value: d.bank_account_holder_name },
                       ].map((row) => (
                         <div key={row.key}>
                           <p className="text-xs text-muted-foreground mb-1">{row.label}</p>
@@ -445,7 +463,7 @@ const Deposit = () => {
                       ))}
                     </div>
                     <div className="space-y-3">
-                      <p className="text-xs font-medium text-foreground">Bank QR (optional)</p>
+                      <p className="text-xs font-medium text-foreground">{t("deposit.bankQrOptional")}</p>
                       {d.bank_qr_url ? (
                         <>
                           <img
@@ -457,27 +475,21 @@ const Deposit = () => {
                         </>
                       ) : (
                         <p className="text-sm text-muted-foreground text-center py-6 rounded-xl border border-dashed border-border">
-                          No bank QR image configured.
+                          {t("deposit.noBankQr")}
                         </p>
                       )}
                     </div>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">
-                    Payment instructions could not be loaded. Pull to refresh or try again later.
-                  </p>
+                  <p className="text-sm text-muted-foreground">{t("deposit.loadFailed")}</p>
                 )}
               </StepSection>
 
-              <StepSection
-                step={4}
-                title="Upload payment proof"
-                description="Screenshot of the success message or receipt from eSewa, Khalti, or your bank. Make sure the amount and time are readable."
-              >
+              <StepSection step={4} title={t("deposit.stepProof")} description={t("deposit.stepProofDescription")}>
                 <label className="flex flex-col items-center justify-center w-full min-h-32 border-2 border-dashed border-border rounded-xl cursor-pointer hover:bg-muted/50 transition-colors p-4">
                   <Upload className="w-8 h-8 text-muted-foreground mb-2" />
                   <span className="text-sm text-muted-foreground text-center">
-                    {screenshot ? screenshot.name : "Tap to choose an image"}
+                    {screenshot ? screenshot.name : t("deposit.tapChooseImage")}
                   </span>
                   <input
                     type="file"
@@ -488,7 +500,7 @@ const Deposit = () => {
                 </label>
                 {screenshotPreviewUrl && screenshot && (
                   <div className="mt-4 space-y-2">
-                    <p className="text-xs text-muted-foreground">Preview</p>
+                    <p className="text-xs text-muted-foreground">{t("deposit.preview")}</p>
                     <div className="relative rounded-xl border border-border overflow-hidden bg-muted/30">
                       <img
                         src={screenshotPreviewUrl}
@@ -497,7 +509,7 @@ const Deposit = () => {
                       />
                     </div>
                     <Button type="button" variant="outline" size="sm" className="w-full" onClick={() => setScreenshot(null)}>
-                      Remove and choose another
+                      {t("deposit.removeChooseAnother")}
                     </Button>
                   </div>
                 )}
@@ -507,7 +519,7 @@ const Deposit = () => {
             <div className="shrink-0 space-y-2 border-t border-border bg-background px-4 py-3 sm:px-6">
               {createRequest.isError && (
                 <p className="text-destructive text-sm">
-                  {(createRequest.error as ApiError).detail ?? "Failed to submit deposit request."}
+                  {(createRequest.error as ApiError).detail ?? t("deposit.submitFailed")}
                 </p>
               )}
               <Button
@@ -521,7 +533,7 @@ const Deposit = () => {
                 }
                 onClick={handleSubmit}
               >
-                {createRequest.isPending ? "Submitting…" : "Submit deposit request"}
+                {createRequest.isPending ? t("deposit.submitting") : t("deposit.submitRequest")}
               </Button>
             </div>
           </DialogContent>

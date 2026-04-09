@@ -1,0 +1,15 @@
+export default {
+  title: "कार्ट",
+  titleWithCount: "कार्ट ({{count}})",
+  emptyTitle: "तपाईंको कार्ट खाली छ",
+  emptyHint: "सुरु गर्न केही उत्पादन थप्नुहोस्।",
+  browseProducts: "उत्पादनहरू हेर्नुहोस्",
+  each: "रु {{price}} प्रति वस्तु",
+  maxStock: "अधिकतम {{stock}} स्टकमा",
+  maxStockCart: " (कार्ट अधिकतममा)",
+  ariaMaxQty: "अधिकतम मात्रा पुग्यो",
+  ariaIncreaseQty: "मात्रा बढाउनुहोस्",
+  subtotal: "उप-योग",
+  continueShopping: "किनमेल जारी राख्नुहोस्",
+  proceedCheckout: "चेकआउटमा जानुहोस्",
+} as const;

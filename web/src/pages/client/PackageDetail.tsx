@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, Star, CheckCircle2, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,13 +6,14 @@ import { usePackage } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const PackageDetail = () => {
+  const { t } = useTranslation("pages");
   const { id } = useParams();
   const { data: pkg, isLoading, error } = usePackage(id ? Number(id) : null);
 
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Package not found.</p>
+        <p className="text-destructive">{t("misc.package.notFound")}</p>
       </div>
     );
   }
@@ -22,7 +24,7 @@ const PackageDetail = () => {
           <Link to="/packages" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-lg font-semibold">Package Details</h1>
+          <h1 className="text-lg font-semibold">{t("misc.package.title")}</h1>
         </header>
         <div className="client-page-container client-page-content pb-32">
           <Skeleton className="h-48 w-full rounded-3xl mb-4" />
@@ -43,7 +45,7 @@ const PackageDetail = () => {
         <Link to="/packages" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">Package Details</h1>
+        <h1 className="text-lg font-semibold">{t("misc.package.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-32 lg:pb-36 space-y-6">

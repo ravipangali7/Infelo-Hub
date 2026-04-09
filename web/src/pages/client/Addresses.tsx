@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Plus, MapPin, Edit2, Trash2, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const DELIVERY_COUNTRY = "Nepal";
 
 const Addresses = () => {
+  const { t } = useTranslation("pages");
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Address | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -92,7 +94,7 @@ const Addresses = () => {
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div>
-            <h1 className="text-lg font-semibold font-display">My Addresses</h1>
+            <h1 className="text-lg font-semibold font-display">{t("misc.addresses.title")}</h1>
             {!isLoading && (
               <p className="text-xs text-muted-foreground">{addresses.length} saved {addresses.length === 1 ? "address" : "addresses"}</p>
             )}

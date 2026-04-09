@@ -1,5 +1,7 @@
+import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
+import { useTranslation } from "react-i18next";
 import {
   Receipt,
   ArrowDownToLine,
@@ -33,38 +35,22 @@ import type { Product, ProductCategory } from "@/api/types";
 import { getToken } from "@/api/client";
 import { ClientBannerCarousel } from "@/components/ClientBannerCarousel";
 
-const features = [
-  { icon: Receipt, label: "Transactions", path: "/transactions", color: "text-primary" },
-  { icon: ArrowDownToLine, label: "Deposit", path: "/deposit", color: "text-success" },
-  { icon: ArrowUpFromLine, label: "Withdraw", path: "/withdraw", color: "text-accent" },
-  { icon: Megaphone, label: "Campaigns", path: "/campaigns", color: "text-purple-500" },
-  { icon: Share2, label: "Affiliation", path: "/shop?filter=affiliate", color: "text-pink-500" },
-  { icon: Gift, label: "Buy & Earn", path: "/shop?filter=reward", color: "text-green-500" },
-  { icon: ShoppingBag, label: "Shop", path: "/shop", color: "text-blue-500" },
-  { icon: DollarSign, label: "Earnings", path: "/wallet", color: "text-emerald-500" },
-];
-
-const earningWays = [
-  { icon: ShoppingBag, title: "Buy & Earn", desc: "Get rewards on purchases", color: "bg-green-500", path: "/learn-to-earn" },
-  { icon: Share2, title: "Affiliate", desc: "Share products & earn", color: "bg-pink-500", path: "/learn-to-earn" },
-  { icon: Megaphone, title: "Campaigns", desc: "Complete tasks & earn", color: "bg-purple-500", path: "/learn-to-earn" },
-];
-
 function isInfeloHubFlutterEmbedded(): boolean {
   return typeof window !== "undefined" && Boolean(window.__infeloHubFlutterClient);
 }
 
-function formatTime(iso: string) {
+function formatTime(iso: string, t: (k: string) => string) {
   const d = new Date(iso);
   const now = new Date();
   const diff = now.getTime() - d.getTime();
-  if (diff < 3600000) return "Just now";
-  if (diff < 86400000) return "Today";
-  if (diff < 172800000) return "Yesterday";
+  if (diff < 3600000) return t("common:timeJustNow");
+  if (diff < 86400000) return t("common:timeToday");
+  if (diff < 172800000) return t("common:timeYesterday");
   return d.toLocaleDateString();
 }
 
 function HomeSectionRow({ category, products }: { category: ProductCategory; products: Product[] }) {
+  const { t } = useTranslation(["pages", "common"]);
   return (
     <div>
       <div className="flex items-center gap-3 mb-3">
@@ -77,7 +63,7 @@ function HomeSectionRow({ category, products }: { category: ProductCategory; pro
         </div>
         <h4 className="font-bold text-sm">{category.name}</h4>
         <Link to={`/shop?category=${category.id}`} className="ml-auto text-xs text-primary font-medium flex items-center gap-0.5 flex-shrink-0">
-          See all <ChevronRight className="w-3 h-3" />
+          {t("common:seeAll")} <ChevronRight className="w-3 h-3" />
         </Link>
       </div>
 
@@ -85,21 +71,26 @@ function HomeSectionRow({ category, products }: { category: ProductCategory; pro
         {products.map((product) => {
           const discount = Number(product.discount) || 0;
           const isPercentDiscount = product.discount_type === "percentage";
-          const discountLabel = discount > 0
-            ? isPercentDiscount ? `-${discount}%` : `-रु ${discount}`
-            : null;
+          const discountLabel =
+            discount > 0
+              ? isPercentDiscount
+                ? t("pages:home.discountPercent", { pct: discount })
+                : t("pages:home.discountFixed", { amt: discount })
+              : null;
           const cashback = Number(product.purchase_reward) || 0;
-          const cashbackLabel = product.is_purchase_reward && cashback > 0
-            ? product.purchase_reward_type === "percentage"
-              ? `+${cashback}% CB`
-              : `+रु ${cashback} CB`
-            : null;
+          const cashbackLabel =
+            product.is_purchase_reward && cashback > 0
+              ? product.purchase_reward_type === "percentage"
+                ? t("pages:home.badgeCbPercent", { pct: cashback })
+                : t("pages:home.badgeCbFixed", { amt: cashback })
+              : null;
           const affReward = Number(product.affiliation_reward) || 0;
-          const affLabel = product.is_affiliation && affReward > 0
-            ? product.affiliation_reward_type === "percentage"
-              ? `${affReward}% AFF`
-              : `रु ${affReward} AFF`
-            : null;
+          const affLabel =
+            product.is_affiliation && affReward > 0
+              ? product.affiliation_reward_type === "percentage"
+                ? t("pages:home.badgeAffPercent", { pct: affReward })
+                : t("pages:home.badgeAffFixed", { amt: affReward })
+              : null;
           return (
             <Link key={product.id} to={`/product/${product.slug}`} className="product-card w-[140px] flex-shrink-0">
               <div className="aspect-square relative">
@@ -126,7 +117,9 @@ function HomeSectionRow({ category, products }: { category: ProductCategory; pro
               </div>
               <div className="p-2.5">
                 <p className="text-xs font-medium line-clamp-2 leading-tight mb-1">{product.name}</p>
-                <p className="text-primary font-bold text-sm">रु {product.selling_price}</p>
+                <p className="text-primary font-bold text-sm">
+                  {t("common:currencyShort")} {product.selling_price}
+                </p>
               </div>
             </Link>
           );
@@ -137,6 +130,7 @@ function HomeSectionRow({ category, products }: { category: ProductCategory; pro
 }
 
 const Home = () => {
+  const { t } = useTranslation(["pages", "common", "client"]);
   const isLoggedIn = !!getToken();
   const { data: unreadNotif } = useNotificationUnreadCount();
   const unreadCount = unreadNotif?.unread_count ?? 0;
@@ -155,6 +149,47 @@ const Home = () => {
   const androidApkUrl = (appVersion?.android_file_url ?? "").trim();
   const showAndroidDownload = !isInfeloHubFlutterEmbedded() && androidApkUrl.length > 0;
 
+  const features = useMemo(
+    () => [
+      { icon: Receipt, label: t("pages:home.featureTransactions"), path: "/transactions", color: "text-primary" },
+      { icon: ArrowDownToLine, label: t("pages:home.featureDeposit"), path: "/deposit", color: "text-success" },
+      { icon: ArrowUpFromLine, label: t("pages:home.featureWithdraw"), path: "/withdraw", color: "text-accent" },
+      { icon: Megaphone, label: t("pages:home.featureCampaigns"), path: "/campaigns", color: "text-purple-500" },
+      { icon: Share2, label: t("pages:home.featureAffiliation"), path: "/shop?filter=affiliate", color: "text-pink-500" },
+      { icon: Gift, label: t("pages:home.featureBuyEarn"), path: "/shop?filter=reward", color: "text-green-500" },
+      { icon: ShoppingBag, label: t("pages:home.featureShop"), path: "/shop", color: "text-blue-500" },
+      { icon: DollarSign, label: t("pages:home.featureEarnings"), path: "/wallet", color: "text-emerald-500" },
+    ],
+    [t]
+  );
+
+  const earningWays = useMemo(
+    () => [
+      {
+        icon: ShoppingBag,
+        title: t("pages:home.earnBuyTitle"),
+        desc: t("pages:home.earnBuyDesc"),
+        color: "bg-green-500",
+        path: "/learn-to-earn",
+      },
+      {
+        icon: Share2,
+        title: t("pages:home.earnAffTitle"),
+        desc: t("pages:home.earnAffDesc"),
+        color: "bg-pink-500",
+        path: "/learn-to-earn",
+      },
+      {
+        icon: Megaphone,
+        title: t("pages:home.earnCampTitle"),
+        desc: t("pages:home.earnCampDesc"),
+        color: "bg-purple-500",
+        path: "/learn-to-earn",
+      },
+    ],
+    [t]
+  );
+
   const wallet = data?.wallet ?? { earning_wallet: 0, topup_wallet: 0, package_name: null };
   const earning = Number(wallet.earning_wallet) || 0;
   const topup = Number(wallet.topup_wallet) || 0;
@@ -165,15 +200,16 @@ const Home = () => {
   const banners = homeConfig?.banners ?? [];
   const isPublicLoading = sectionsLoading || campaignsLoading;
   const featuredLoading = isLoggedIn ? isLoading : sectionsLoading;
-  const homeTitle = siteSettings?.title?.trim() || "Infelo Hub";
-  const homeDescription = siteSettings?.subtitle?.trim() || "Discover products, campaigns, and rewards on Infelo Hub.";
+  const homeTitle = siteSettings?.title?.trim() || t("pages:home.defaultTitle");
+  const homeDescription = siteSettings?.subtitle?.trim() || t("pages:home.defaultDescription");
   const homeImage = siteSettings?.logo_url || `${window.location.origin}${logo.startsWith("/") ? "" : "/"}${logo}`;
   const homeUrl = window.location.origin;
+  const brand = t("client:brand");
 
   if (error && isLoggedIn) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Failed to load dashboard. You may need to log in.</p>
+        <p className="text-destructive">{t("pages:home.failedDashboard")}</p>
       </div>
     );
   }
@@ -184,7 +220,7 @@ const Home = () => {
         <title>{homeTitle}</title>
         <meta name="description" content={homeDescription} />
         <meta property="og:type" content="website" />
-        <meta property="og:site_name" content="Infelo Hub" />
+        <meta property="og:site_name" content={brand} />
         <meta property="og:title" content={homeTitle} />
         <meta property="og:description" content={homeDescription} />
         <meta property="og:url" content={homeUrl} />
@@ -196,14 +232,16 @@ const Home = () => {
         <meta name="twitter:image" content={homeImage} />
       </Helmet>
       <header className="client-page-container client-page-content pt-6 pb-4 flex items-center justify-between">
-        <img src={logo} alt="Infelo Hub" className="h-10 w-auto" />
+        <img src={logo} alt={brand} className="h-10 w-auto" />
         <div className="flex items-center gap-3">
-          <span className="text-sm font-medium text-muted-foreground">{isLoggedIn ? "Welcome back!" : "Welcome!"}</span>
+          <span className="text-sm font-medium text-muted-foreground">
+            {isLoggedIn ? t("pages:home.welcomeBack") : t("pages:home.welcome")}
+          </span>
           {isLoggedIn && (
             <Link
               to="/notifications"
               className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border/50 bg-white shadow-sm"
-              aria-label="Notifications"
+              aria-label={t("pages:home.notificationsAria")}
             >
               <Bell className="h-5 w-5 text-foreground" />
               {unreadCount > 0 && (
@@ -233,9 +271,7 @@ const Home = () => {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Smartphone className="h-4 w-4" aria-hidden />
             </div>
-            <p className="min-w-0 flex-1 text-xs text-muted-foreground sm:text-sm">
-              Get the Infelo Hub app on Android for notifications and a smoother experience.
-            </p>
+            <p className="min-w-0 flex-1 text-xs text-muted-foreground sm:text-sm">{t("pages:home.androidBanner")}</p>
             <a
               href={androidApkUrl}
               target="_blank"
@@ -243,7 +279,7 @@ const Home = () => {
               className="inline-flex shrink-0 items-center gap-1.5 rounded-lg bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:opacity-90 sm:text-sm"
             >
               <Download className="h-3.5 w-3.5" aria-hidden />
-              Download
+              {t("pages:home.download")}
             </a>
           </div>
         )}
@@ -256,9 +292,9 @@ const Home = () => {
                 <>
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <p className="text-white/70 text-sm mb-1">Total Balance</p>
+                      <p className="text-white/70 text-sm mb-1">{t("common:totalBalance")}</p>
                       <h2 className="text-3xl font-bold font-display">
-                        रु {(earning + topup).toLocaleString()}
+                        {t("common:currencyShort")} {(earning + topup).toLocaleString()}
                       </h2>
                     </div>
                     <div className="bg-white/20 backdrop-blur-sm rounded-full px-3 py-1 text-sm">
@@ -267,12 +303,16 @@ const Home = () => {
                   </div>
                   <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                      <p className="text-white/60 text-xs mb-1">Earning Wallet</p>
-                      <p className="text-lg font-semibold">रु {earning.toLocaleString()}</p>
+                      <p className="text-white/60 text-xs mb-1">{t("common:earningWallet")}</p>
+                      <p className="text-lg font-semibold">
+                        {t("common:currencyShort")} {earning.toLocaleString()}
+                      </p>
                     </div>
                     <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                      <p className="text-white/60 text-xs mb-1">Top-up Wallet</p>
-                      <p className="text-lg font-semibold">रु {topup.toLocaleString()}</p>
+                      <p className="text-white/60 text-xs mb-1">{t("common:topupWallet")}</p>
+                      <p className="text-lg font-semibold">
+                        {t("common:currencyShort")} {topup.toLocaleString()}
+                      </p>
                     </div>
                   </div>
                 </>
@@ -280,11 +320,11 @@ const Home = () => {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 <Link to="/deposit" className="bg-white text-primary font-semibold py-3 rounded-xl text-center flex items-center justify-center gap-2 hover:bg-white/90 transition-all">
                   <ArrowDownToLine className="w-4 h-4" />
-                  Deposit
+                  {t("client:nav.deposit")}
                 </Link>
                 <Link to="/withdraw" className="bg-accent text-white font-semibold py-3 rounded-xl text-center flex items-center justify-center gap-2 hover:opacity-90 transition-all">
                   <ArrowUpFromLine className="w-4 h-4" />
-                  Withdraw
+                  {t("client:nav.withdraw")}
                 </Link>
               </div>
             </div>
@@ -296,7 +336,7 @@ const Home = () => {
         ) : !isLoggedIn ? (
           <div className="rounded-2xl border border-border/50 bg-muted/20 p-4 text-center">
             <Link to="/shop" className="text-sm font-semibold text-primary">
-              Browse the shop
+              {t("pages:home.browseShop")}
             </Link>
           </div>
         ) : null}
@@ -304,9 +344,9 @@ const Home = () => {
         {(featuredLoading || featuredProducts.length > 0) && (
           <section>
             <div className="section-header">
-              <h3 className="section-title">Featured Products</h3>
+              <h3 className="section-title">{t("pages:home.featuredProducts")}</h3>
               <Link to="/shop" className="text-sm text-primary font-medium flex items-center gap-1">
-                View All <ChevronRight className="w-4 h-4" />
+                {t("common:viewAll")} <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
             {featuredLoading ? (
@@ -320,21 +360,26 @@ const Home = () => {
                 {featuredProducts.map((product) => {
                   const discount = Number(product.discount) || 0;
                   const isPercentDiscount = product.discount_type === "percentage";
-                  const discountLabel = discount > 0
-                    ? isPercentDiscount ? `-${discount}%` : `-रु ${discount}`
-                    : null;
+                  const discountLabel =
+                    discount > 0
+                      ? isPercentDiscount
+                        ? t("pages:home.discountPercent", { pct: discount })
+                        : t("pages:home.discountFixed", { amt: discount })
+                      : null;
                   const cashback = Number(product.purchase_reward) || 0;
-                  const cashbackLabel = product.is_purchase_reward && cashback > 0
-                    ? product.purchase_reward_type === "percentage"
-                      ? `+${cashback}% CB`
-                      : `+रु ${cashback} CB`
-                    : null;
+                  const cashbackLabel =
+                    product.is_purchase_reward && cashback > 0
+                      ? product.purchase_reward_type === "percentage"
+                        ? t("pages:home.badgeCbPercent", { pct: cashback })
+                        : t("pages:home.badgeCbFixed", { amt: cashback })
+                      : null;
                   const affReward = Number(product.affiliation_reward) || 0;
-                  const affLabel = product.is_affiliation && affReward > 0
-                    ? product.affiliation_reward_type === "percentage"
-                      ? `${affReward}% AFF`
-                      : `रु ${affReward} AFF`
-                    : null;
+                  const affLabel =
+                    product.is_affiliation && affReward > 0
+                      ? product.affiliation_reward_type === "percentage"
+                        ? t("pages:home.badgeAffPercent", { pct: affReward })
+                        : t("pages:home.badgeAffFixed", { amt: affReward })
+                      : null;
                   return (
                     <Link key={product.id} to={`/product/${product.slug}`} className="product-card w-[160px] flex-shrink-0">
                       <div className="aspect-square relative">
@@ -364,7 +409,9 @@ const Home = () => {
                         {product.vendor_name && (
                           <p className="text-[10px] text-muted-foreground truncate mb-1">{product.vendor_name}</p>
                         )}
-                        <p className="text-primary font-bold text-sm">रु {product.selling_price}</p>
+                        <p className="text-primary font-bold text-sm">
+                          {t("common:currencyShort")} {product.selling_price}
+                        </p>
                       </div>
                     </Link>
                   );
@@ -376,9 +423,9 @@ const Home = () => {
 
         <section>
           <div className="section-header">
-            <h3 className="section-title">Running Campaigns</h3>
+            <h3 className="section-title">{t("pages:home.runningCampaigns")}</h3>
             <Link to="/campaigns" className="text-sm text-primary font-medium flex items-center gap-1">
-              View All <ChevronRight className="w-4 h-4" />
+              {t("common:viewAll")} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="space-y-3">
@@ -391,10 +438,12 @@ const Home = () => {
                 />
                 <div className="flex-1">
                   <h4 className="font-semibold">{campaign.name}</h4>
-                  <p className="text-sm text-muted-foreground">Earn up to रु {campaign.commission}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("pages:home.earnUpTo", { amount: campaign.commission })}
+                  </p>
                 </div>
                 <div className="bg-success/10 text-success text-xs font-medium px-3 py-1 rounded-full">
-                  {campaign.status_display || "Active"}
+                  {campaign.status_display || t("common:active")}
                 </div>
               </Link>
             ))}
@@ -402,7 +451,7 @@ const Home = () => {
         </section>
 
         <section>
-          <h3 className="section-title mb-4">Quick Actions</h3>
+          <h3 className="section-title mb-4">{t("pages:home.quickActions")}</h3>
           <div className="grid grid-cols-4 gap-2 sm:gap-3">
             {features.map((feature, i) => {
               const Icon = feature.icon;
@@ -443,9 +492,9 @@ const Home = () => {
 
         <section>
           <div className="section-header">
-            <h3 className="section-title">Ways to Earn</h3>
+            <h3 className="section-title">{t("pages:home.waysToEarn")}</h3>
             <Link to="/learn-to-earn" className="text-sm text-primary font-medium flex items-center gap-1">
-              Learn More <ChevronRight className="w-4 h-4" />
+              {t("common:learnMore")} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
@@ -466,9 +515,9 @@ const Home = () => {
         {isLoggedIn && (
           <section>
             <div className="section-header">
-              <h3 className="section-title">Recent Transactions</h3>
+              <h3 className="section-title">{t("pages:home.recentTransactions")}</h3>
               <Link to="/transactions" className="text-sm text-primary font-medium flex items-center gap-1">
-                View All <ChevronRight className="w-4 h-4" />
+                {t("common:viewAll")} <ChevronRight className="w-4 h-4" />
               </Link>
             </div>
             <div className="space-y-3">
@@ -481,10 +530,11 @@ const Home = () => {
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium text-sm">{tx.transaction_for_display || tx.transaction_for}</h4>
-                      <p className="text-xs text-muted-foreground">{formatTime(tx.created_at)}</p>
+                      <p className="text-xs text-muted-foreground">{formatTime(tx.created_at, t)}</p>
                     </div>
                     <span className={`font-semibold ${isEarning ? "text-success" : "text-foreground"}`}>
-                      {isEarning ? "+" : ""}रु {tx.amount}
+                      {isEarning ? "+" : ""}
+                      {t("common:currencyShort")} {tx.amount}
                     </span>
                   </div>
                 );
@@ -494,8 +544,8 @@ const Home = () => {
         )}
 
         <section className="floating-card p-4">
-          <h3 className="font-semibold mb-2">Customer Love</h3>
-          <p className="text-sm text-muted-foreground">Trusted by thousands of happy shoppers across Nepal. New ratings and reviews are coming soon.</p>
+          <h3 className="font-semibold mb-2">{t("pages:home.customerLoveTitle")}</h3>
+          <p className="text-sm text-muted-foreground">{t("pages:home.customerLoveBody")}</p>
         </section>
       </div>
     </div>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -8,6 +9,7 @@ import { useReferrals } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const ReferralList = () => {
+  const { t } = useTranslation("pages");
   const [search, setSearch] = useState("");
   const { data, isLoading, error } = useReferrals();
   const referrals = data?.results ?? [];
@@ -22,7 +24,7 @@ const ReferralList = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Failed to load referrals.</p>
+        <p className="text-destructive">{t("misc.referral.loadFailed")}</p>
       </div>
     );
   }
@@ -34,12 +36,12 @@ const ReferralList = () => {
           <Link to="/network" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-lg font-semibold">All Referrals</h1>
+          <h1 className="text-lg font-semibold">{t("misc.referral.title")}</h1>
         </div>
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Search referrals..."
+            placeholder={t("misc.referral.searchPlaceholder")}
             className="pl-10 bg-card"
             value={search}
             onChange={(e) => setSearch(e.target.value)}

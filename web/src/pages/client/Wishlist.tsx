@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Heart, Trash2, ShoppingBag } from "lucide-react";
 import { useWishlist, useRemoveFromWishlist } from "@/api/hooks";
@@ -6,13 +7,14 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 
 const Wishlist = () => {
+  const { t } = useTranslation("pages");
   const { data: wishlistItems, isLoading } = useWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
 
   const handleRemove = (productId: number) => {
     removeFromWishlist.mutate(productId, {
-      onSuccess: () => toast.success("Removed from wishlist"),
-      onError: () => toast.error("Failed to remove"),
+      onSuccess: () => toast.success(t("misc.wishlist.removed")),
+      onError: () => toast.error(t("misc.wishlist.addFailed")),
     });
   };
 
@@ -27,10 +29,12 @@ const Wishlist = () => {
         </Link>
         <div className="flex items-center gap-2">
           <Heart className="w-5 h-5 text-red-500 fill-red-500" />
-          <h1 className="text-lg font-bold font-display">Wishlist</h1>
+          <h1 className="text-lg font-bold font-display">{t("misc.wishlist.title")}</h1>
         </div>
         {wishlistItems && wishlistItems.length > 0 && (
-          <span className="ml-auto text-sm text-muted-foreground">{wishlistItems.length} items</span>
+          <span className="ml-auto text-sm text-muted-foreground">
+            {t("misc.wishlist.itemCount", { count: wishlistItems.length })}
+          </span>
         )}
       </header>
 
@@ -47,11 +51,11 @@ const Wishlist = () => {
               <ShoppingBag className="w-10 h-10 text-muted-foreground" />
             </div>
             <div className="text-center">
-              <h3 className="font-semibold text-lg mb-1">Your wishlist is empty</h3>
-              <p className="text-sm text-muted-foreground">Add products you love to your wishlist</p>
+              <h3 className="font-semibold text-lg mb-1">{t("misc.wishlist.empty")}</h3>
+              <p className="text-sm text-muted-foreground">{t("misc.wishlist.emptySubtitle")}</p>
             </div>
             <Button asChild>
-              <Link to="/shop">Browse Products</Link>
+              <Link to="/shop">{t("misc.wishlist.browse")}</Link>
             </Button>
           </div>
         ) : (

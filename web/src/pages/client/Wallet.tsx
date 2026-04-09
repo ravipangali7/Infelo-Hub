@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import {
   ArrowDownToLine,
   ArrowUpFromLine,
@@ -10,16 +11,17 @@ import { useWallet, useTransactions } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 
-function formatTime(iso: string) {
+function formatTime(iso: string, t: (key: string) => string) {
   const d = new Date(iso);
   const now = new Date();
   const diff = now.getTime() - d.getTime();
-  if (diff < 3600000) return "Today";
-  if (diff < 86400000) return "Yesterday";
+  if (diff < 3600000) return t("common:timeToday");
+  if (diff < 86400000) return t("common:timeYesterday");
   return d.toLocaleDateString();
 }
 
 const Wallet = () => {
+  const { t } = useTranslation(["pages", "common", "client"]);
   const { data: walletData, isLoading: walletLoading, error: walletError } = useWallet();
   const { data: txData, isLoading: txLoading } = useTransactions();
 
@@ -30,7 +32,7 @@ const Wallet = () => {
   if (walletError) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Failed to load wallet. You may need to log in.</p>
+        <p className="text-destructive">{t("pages:wallet.failedLoad")}</p>
       </div>
     );
   }
@@ -38,7 +40,7 @@ const Wallet = () => {
   return (
     <div className="min-h-screen">
       <header className="client-page-container client-page-content pt-6 pb-4">
-        <h1 className="text-2xl font-bold font-display">Wallet</h1>
+        <h1 className="text-2xl font-bold font-display">{t("pages:wallet.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content space-y-6 pb-8">
@@ -50,21 +52,25 @@ const Wallet = () => {
               <>
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className="text-white/70 text-sm mb-1">Total Balance</p>
+                    <p className="text-white/70 text-sm mb-1">{t("common:totalBalance")}</p>
                     <h2 className="text-3xl font-bold font-display">
-                      रु {(earning + topup).toLocaleString()}
+                      {t("common:currencyShort")} {(earning + topup).toLocaleString()}
                     </h2>
                   </div>
                   <WalletIcon className="w-8 h-8 text-white/30" />
                 </div>
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                    <p className="text-white/60 text-xs mb-1">Earning Wallet</p>
-                    <p className="text-lg font-semibold">रु {earning.toLocaleString()}</p>
+                    <p className="text-white/60 text-xs mb-1">{t("common:earningWallet")}</p>
+                    <p className="text-lg font-semibold">
+                      {t("common:currencyShort")} {earning.toLocaleString()}
+                    </p>
                   </div>
                   <div className="bg-white/10 backdrop-blur-sm rounded-xl p-3">
-                    <p className="text-white/60 text-xs mb-1">Top-up Wallet</p>
-                    <p className="text-lg font-semibold">रु {topup.toLocaleString()}</p>
+                    <p className="text-white/60 text-xs mb-1">{t("common:topupWallet")}</p>
+                    <p className="text-lg font-semibold">
+                      {t("common:currencyShort")} {topup.toLocaleString()}
+                    </p>
                   </div>
                 </div>
               </>
@@ -75,14 +81,14 @@ const Wallet = () => {
                 className="bg-white text-primary font-semibold py-3 rounded-xl text-center flex items-center justify-center gap-2 hover:bg-white/90 transition-all"
               >
                 <ArrowDownToLine className="w-4 h-4" />
-                Deposit
+                {t("client:nav.deposit")}
               </Link>
               <Link
                 to="/withdraw"
                 className="bg-accent text-white font-semibold py-3 rounded-xl text-center flex items-center justify-center gap-2 hover:opacity-90 transition-all"
               >
                 <ArrowUpFromLine className="w-4 h-4" />
-                Withdraw
+                {t("client:nav.withdraw")}
               </Link>
             </div>
           </div>
@@ -90,9 +96,9 @@ const Wallet = () => {
 
         <section>
           <div className="section-header">
-            <h3 className="section-title">Transaction History</h3>
+            <h3 className="section-title">{t("pages:wallet.transactionHistory")}</h3>
             <Link to="/transactions" className="text-sm text-primary font-medium flex items-center gap-1">
-              View All <ChevronRight className="w-4 h-4" />
+              {t("common:viewAll")} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
           {txLoading ? (
@@ -108,10 +114,16 @@ const Wallet = () => {
                 const amt = Number(tx.amount) || 0;
                 return (
                   <div key={tx.id} className="floating-card flex items-center gap-4 p-4">
-                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${
-                      isAdded ? "bg-success/10" : "bg-accent/10"
-                    }`}>
-                      {isAdded ? <TrendingUp className="w-5 h-5 text-success" /> : <ArrowUpFromLine className="w-5 h-5 text-accent" />}
+                    <div
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center ${
+                        isAdded ? "bg-success/10" : "bg-accent/10"
+                      }`}
+                    >
+                      {isAdded ? (
+                        <TrendingUp className="w-5 h-5 text-success" />
+                      ) : (
+                        <ArrowUpFromLine className="w-5 h-5 text-accent" />
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
@@ -125,10 +137,11 @@ const Wallet = () => {
                           </Badge>
                         )}
                       </div>
-                      <p className="text-xs text-muted-foreground">{formatTime(tx.created_at)}</p>
+                      <p className="text-xs text-muted-foreground">{formatTime(tx.created_at, t)}</p>
                     </div>
                     <span className={`font-semibold ${isAdded ? "text-success" : "text-foreground"}`}>
-                      {isAdded ? "+" : "-"}रु {Math.abs(amt).toLocaleString()}
+                      {isAdded ? "+" : "-"}
+                      {t("common:currencyShort")} {Math.abs(amt).toLocaleString()}
                     </span>
                   </div>
                 );

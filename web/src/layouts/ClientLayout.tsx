@@ -1,5 +1,7 @@
 import { useEffect, type MouseEvent } from "react";
 import { Outlet, useLocation, useNavigate, Link, Navigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import i18n from "@/i18n";
 import {
   Home,
   ShoppingBag,
@@ -37,39 +39,68 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const navItems = [
-  { path: "/", icon: Home, label: "Home" },
-  { path: "/shop", icon: ShoppingBag, label: "Shop" },
-  { path: "/orders", icon: ClipboardList, label: "Orders" },
-  { path: "/wallet", icon: Wallet, label: "Wallet" },
-  { path: "/profile", icon: User, label: "Profile" },
+const bottomNavConfig = [
+  { path: "/", icon: Home, navKey: "home" as const },
+  { path: "/shop", icon: ShoppingBag, navKey: "shop" as const },
+  { path: "/orders", icon: ClipboardList, navKey: "orders" as const },
+  { path: "/wallet", icon: Wallet, navKey: "wallet" as const },
+  { path: "/profile", icon: User, navKey: "profile" as const },
 ];
 
 const protectedPaths = ["/orders", "/wallet", "/profile"];
 
 const coreDesktopNav = [
-  { path: "/", label: "Home", auth: false },
-  { path: "/shop", label: "Shop", auth: false },
-  { path: "/shop", label: "Categories", auth: false },
-  { path: "/orders", label: "Orders", auth: true },
+  { path: "/", navKey: "home" as const, auth: false },
+  { path: "/shop", navKey: "shop" as const, auth: false },
+  { path: "/shop", navKey: "categories" as const, auth: false },
+  { path: "/orders", navKey: "orders" as const, auth: true },
 ] as const;
 
-const overflowNavItems: { path: string; label: string; auth: boolean; icon?: typeof Wallet }[] = [
-  { path: "/wallet", label: "Wallet", auth: true, icon: Wallet },
-  { path: "/cart", label: "Cart", auth: true, icon: ShoppingCart },
-  { path: "/wishlist", label: "Wishlist", auth: true, icon: Heart },
-  { path: "/learn-to-earn", label: "Learn to earn", auth: false, icon: GraduationCap },
-  { path: "/campaigns", label: "Campaigns", auth: false, icon: ShoppingBag },
-  { path: "/transactions", label: "Transactions", auth: true, icon: Receipt },
-  { path: "/deposit", label: "Deposit", auth: true, icon: ArrowDownToLine },
-  { path: "/withdraw", label: "Withdraw", auth: true, icon: ArrowUpFromLine },
-  { path: "/addresses", label: "Addresses", auth: true, icon: MapPin },
-  { path: "/payout-accounts", label: "Payout accounts", auth: true, icon: CreditCard },
-  { path: "/kyc", label: "KYC", auth: true, icon: ShieldCheck },
-];
+const overflowNavConfig = [
+  { path: "/wallet", navKey: "wallet" as const, auth: true, icon: Wallet },
+  { path: "/cart", navKey: "cart" as const, auth: true, icon: ShoppingCart },
+  { path: "/wishlist", navKey: "wishlist" as const, auth: true, icon: Heart },
+  { path: "/learn-to-earn", navKey: "learnToEarn" as const, auth: false, icon: GraduationCap },
+  { path: "/campaigns", navKey: "campaigns" as const, auth: false, icon: ShoppingBag },
+  { path: "/transactions", navKey: "transactions" as const, auth: true, icon: Receipt },
+  { path: "/deposit", navKey: "deposit" as const, auth: true, icon: ArrowDownToLine },
+  { path: "/withdraw", navKey: "withdraw" as const, auth: true, icon: ArrowUpFromLine },
+  { path: "/addresses", navKey: "addresses" as const, auth: true, icon: MapPin },
+  { path: "/payout-accounts", navKey: "payoutAccounts" as const, auth: true, icon: CreditCard },
+  { path: "/kyc", navKey: "kyc" as const, auth: true, icon: ShieldCheck },
+] as const;
+
+function LanguageSelect({ className }: { className?: string }) {
+  const { t } = useTranslation("client");
+  const value = i18n.language.startsWith("ne") ? "ne" : "en";
+  return (
+    <Select
+      value={value}
+      onValueChange={(v) => {
+        void i18n.changeLanguage(v);
+      }}
+    >
+      <SelectTrigger className={cn("h-9 w-[108px] rounded-xl text-xs", className)} aria-label={t("language")}>
+        <SelectValue />
+      </SelectTrigger>
+      <SelectContent className="z-[80]">
+        <SelectItem value="en">{t("langEn")}</SelectItem>
+        <SelectItem value="ne">{t("langNe")}</SelectItem>
+      </SelectContent>
+    </Select>
+  );
+}
 
 const ClientLayout = () => {
+  const { t } = useTranslation("client");
   const location = useLocation();
   const navigate = useNavigate();
   const { itemCount } = useCart();
@@ -84,8 +115,8 @@ const ClientLayout = () => {
     if (msg) {
       toast({
         variant: "destructive",
-        title: "Admin access required",
-        description: msg,
+        title: i18n.t("client:staffToastTitle"),
+        description: msg || i18n.t("client:staffToastDescription"),
       });
       navigate(location.pathname, { replace: true, state: {} });
     }
@@ -111,23 +142,25 @@ const ClientLayout = () => {
     }
   };
 
+  const brand = t("brand");
+
   return (
     <div className="min-h-screen bg-background animated-bg">
       <SiteAnalyticsScripts html={publicSite?.google_analytics_script} />
-      {/* Desktop ecommerce header */}
       <header className="client-desktop-header hidden lg:block">
         <div className="client-page-content flex h-14 items-center gap-6 px-4 xl:px-10">
           <Link to="/" className="flex shrink-0 items-center gap-2">
-            <img src={logo} alt="Infelo Hub" className="h-9 w-auto" />
-            <span className="font-display text-lg font-semibold text-primary">Infelo Hub</span>
+            <img src={logo} alt={brand} className="h-9 w-auto" />
+            <span className="font-display text-lg font-semibold text-primary">{brand}</span>
           </Link>
 
           <nav className="flex flex-1 items-center gap-6">
             {coreDesktopNav.map((item) => {
-              const active = item.label === "Categories" ? isActive("/shop") : isActive(item.path);
+              const active = item.navKey === "categories" ? isActive("/shop") : isActive(item.path);
+              const label = t(`nav.${item.navKey}`);
               return (
                 <Link
-                  key={`${item.path}-${item.label}`}
+                  key={`${item.path}-${item.navKey}`}
                   to={item.path}
                   onClick={(e) => item.auth && requireAuthNav(item.path, e)}
                   className={cn(
@@ -135,21 +168,22 @@ const ClientLayout = () => {
                     active ? "text-primary" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {item.label === "Categories" && <LayoutGrid className="h-4 w-4 opacity-70" />}
-                  {item.label}
+                  {item.navKey === "categories" && <LayoutGrid className="h-4 w-4 opacity-70" />}
+                  {label}
                 </Link>
               );
             })}
           </nav>
 
           <div className="flex shrink-0 items-center gap-2">
+            <LanguageSelect />
             {user?.is_staff ? (
               <Link
                 to="/system"
                 onClick={(e) => requireAuthNav("/system", e)}
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-foreground shadow-sm transition-colors hover:bg-muted/60"
-                aria-label="Superadmin"
-                title="Admin panel"
+                aria-label={t("ariaSuperadmin")}
+                title={t("adminPanel")}
               >
                 <LayoutDashboard className="h-5 w-5 text-primary" />
               </Link>
@@ -158,7 +192,7 @@ const ClientLayout = () => {
               to="/notifications"
               onClick={(e) => requireAuthNav("/notifications", e)}
               className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-foreground shadow-sm transition-colors hover:bg-muted/60"
-              aria-label="Notifications"
+              aria-label={t("notifications")}
             >
               <Bell className="h-5 w-5" />
               {getToken() && notifUnread > 0 && (
@@ -171,7 +205,7 @@ const ClientLayout = () => {
               to="/cart"
               onClick={(e) => requireAuthNav("/cart", e)}
               className="relative flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-foreground shadow-sm transition-colors hover:bg-muted/60"
-              aria-label="Cart"
+              aria-label={t("ariaCart")}
             >
               <ShoppingCart className="h-5 w-5" />
               {itemCount > 0 && (
@@ -185,19 +219,24 @@ const ClientLayout = () => {
               to="/profile"
               onClick={(e) => requireAuthNav("/profile", e)}
               className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card text-foreground shadow-sm transition-colors hover:bg-muted/60"
-              aria-label="Profile"
+              aria-label={t("ariaProfile")}
             >
               <User className="h-5 w-5" />
             </Link>
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-xl" aria-label="More navigation">
+                <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-xl" aria-label={t("moreMenu")}>
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 z-[70]">
-                <DropdownMenuLabel>More</DropdownMenuLabel>
+                <DropdownMenuLabel className="lg:hidden">{t("language")}</DropdownMenuLabel>
+                <div className="px-2 pb-2 pt-0 lg:hidden">
+                  <LanguageSelect className="w-full" />
+                </div>
+                <DropdownMenuSeparator className="lg:hidden" />
+                <DropdownMenuLabel>{t("more")}</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {user?.is_staff ? (
                   <DropdownMenuItem asChild>
@@ -207,21 +246,22 @@ const ClientLayout = () => {
                       className="flex cursor-pointer items-center gap-2"
                     >
                       <LayoutDashboard className="h-4 w-4 text-primary" />
-                      Superadmin
+                      {t("superadmin")}
                     </Link>
                   </DropdownMenuItem>
                 ) : null}
-                {overflowNavItems.map((item) => {
+                {overflowNavConfig.map((item) => {
                   const Icon = item.icon ?? ShoppingBag;
+                  const label = t(`nav.${item.navKey}`);
                   return (
-                    <DropdownMenuItem key={item.path + item.label} asChild>
+                    <DropdownMenuItem key={item.path + item.navKey} asChild>
                       <Link
                         to={item.path}
                         onClick={(e) => item.auth && requireAuthNav(item.path, e)}
                         className="flex cursor-pointer items-center gap-2"
                       >
                         <Icon className="h-4 w-4 opacity-70" />
-                        {item.label}
+                        {label}
                       </Link>
                     </DropdownMenuItem>
                   );
@@ -238,9 +278,10 @@ const ClientLayout = () => {
 
       <nav className="bottom-nav z-50 lg:hidden">
         <div className="flex items-center justify-around max-w-lg mx-auto">
-          {navItems.map((item) => {
+          {bottomNavConfig.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
+            const label = t(`nav.${item.navKey}`);
             return (
               <Link
                 key={item.path}
@@ -272,7 +313,7 @@ const ClientLayout = () => {
                     active ? "text-primary" : "text-muted-foreground"
                   )}
                 >
-                  {item.label}
+                  {label}
                 </span>
               </Link>
             );

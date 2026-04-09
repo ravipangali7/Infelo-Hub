@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useCallback, useMemo, useRef } from "react";
 import { ArrowLeft, Clock, Gift, Loader2, Plus, Trash2, Download } from "lucide-react";
@@ -60,6 +61,7 @@ function CampaignImageDownloadButton({
   className?: string;
 }) {
   const { toast } = useToast();
+  const { t } = useTranslation("pages");
   const [busy, setBusy] = useState(false);
 
   const download = async () => {
@@ -75,7 +77,7 @@ function CampaignImageDownloadButton({
       a.rel = "noopener";
       a.click();
       URL.revokeObjectURL(blobUrl);
-      toast({ title: "Download started" });
+      toast({ title: t("deposit.downloadStarted") });
     } catch {
       try {
         const a = document.createElement("a");
@@ -84,10 +86,10 @@ function CampaignImageDownloadButton({
         a.target = "_blank";
         a.rel = "noopener noreferrer";
         a.click();
-        toast({ title: "Opening image — use Save as if download did not start" });
+        toast({ title: t("deposit.openingImage") });
       } catch {
         window.open(url, "_blank", "noopener,noreferrer");
-        toast({ variant: "destructive", title: "Could not download — try opening in a new tab" });
+        toast({ variant: "destructive", title: t("deposit.couldNotDownload") });
       }
     } finally {
       setBusy(false);
@@ -100,15 +102,16 @@ function CampaignImageDownloadButton({
       className={className}
       onClick={download}
       disabled={busy}
-      aria-label="Download campaign image"
+      aria-label={t("campaigns.downloadCampaignImageAria")}
     >
       <Download className="w-3 h-3 shrink-0" />
-      Download
+      {t("campaigns.download")}
     </button>
   );
 }
 
 const CampaignDetail = () => {
+  const { t } = useTranslation("pages");
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -189,8 +192,8 @@ const CampaignDetail = () => {
     if (filledLinks.length === 0 && images.length === 0) {
       toast({
         variant: "destructive",
-        title: "Add a link or a screenshot",
-        description: "Paste at least one URL, or attach at least one image.",
+        title: t("campaigns.validationProofTitle"),
+        description: t("campaigns.validationProofDesc"),
       });
       return;
     }
@@ -220,12 +223,12 @@ const CampaignDetail = () => {
         await createProof({ submissionId: submission.id, formData: fd });
       }
 
-      toast({ title: "Submission received", description: "You are enrolled in this campaign." });
+      toast({ title: t("campaigns.submissionReceived"), description: t("campaigns.submissionReceivedDesc") });
       setDialogOpen(false);
       resetProofForm();
     } catch (e) {
-      const msg = e instanceof ApiError ? e.detail : "Could not submit. Try again.";
-      toast({ variant: "destructive", title: "Submission failed", description: msg });
+      const msg = e instanceof ApiError ? e.detail : t("campaigns.couldNotSubmit");
+      toast({ variant: "destructive", title: t("campaigns.submissionFailed"), description: msg });
     } finally {
       setSubmittingAll(false);
     }
@@ -234,7 +237,7 @@ const CampaignDetail = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Campaign not found.</p>
+        <p className="text-destructive">{t("campaigns.notFound")}</p>
       </div>
     );
   }
@@ -245,7 +248,7 @@ const CampaignDetail = () => {
           <Link to="/campaigns" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-lg font-semibold">Campaign Details</h1>
+          <h1 className="text-lg font-semibold">{t("campaigns.detailTitle")}</h1>
         </header>
         <div className="client-page-container client-page-content pb-8">
           <Skeleton className="w-full aspect-video rounded-2xl mb-4" />
@@ -268,7 +271,7 @@ const CampaignDetail = () => {
     if (!isLoggedIn) {
       return (
         <Button className="w-full" size="lg" type="button" onClick={() => navigate("/login", { state: { from: `/campaign/${campaign.id}` } })}>
-          Log in to participate
+          {t("campaigns.logInToParticipate")}
         </Button>
       );
     }
@@ -277,16 +280,16 @@ const CampaignDetail = () => {
       return (
         <div className="floating-card p-4 space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <p className="text-sm text-muted-foreground">Your submission</p>
+            <p className="text-sm text-muted-foreground">{t("campaigns.yourSubmission")}</p>
             <Badge variant={blockingSubmission.status === "approved" ? "default" : "secondary"}>
               {blockingSubmission.status_display ?? blockingSubmission.status}
             </Badge>
           </div>
           <Button variant="outline" className="w-full" asChild>
-            <Link to={`/submission/${blockingSubmission.id}`}>View submission</Link>
+            <Link to={`/submission/${blockingSubmission.id}`}>{t("campaigns.viewSubmission")}</Link>
           </Button>
           <Button variant="ghost" className="w-full text-muted-foreground" asChild>
-            <Link to="/campaigns?tab=submissions">My submissions</Link>
+            <Link to="/campaigns?tab=submissions">{t("campaigns.mySubmissionsLink")}</Link>
           </Button>
         </div>
       );
@@ -296,45 +299,43 @@ const CampaignDetail = () => {
       <>
         {latestRejected && (
           <div className="floating-card p-4 space-y-3 border-destructive/20">
-            <p className="text-sm text-muted-foreground">Your previous submission was rejected.</p>
+            <p className="text-sm text-muted-foreground">{t("campaigns.previousRejected")}</p>
             {latestRejected.reject_reason && (
               <p className="text-xs text-destructive line-clamp-3">{latestRejected.reject_reason}</p>
             )}
             <Button variant="outline" className="w-full" asChild>
-              <Link to={`/submission/${latestRejected.id}`}>View rejected submission</Link>
+              <Link to={`/submission/${latestRejected.id}`}>{t("campaigns.viewRejectedSubmission")}</Link>
             </Button>
           </div>
         )}
         <Button className="w-full" size="lg" type="button" onClick={handleOpenDialog}>
-          Submit for this campaign
+          {t("campaigns.submitForCampaign")}
         </Button>
 
         <Dialog open={dialogOpen} onOpenChange={handleDialogOpenChange}>
           <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Submit proof</DialogTitle>
-              <DialogDescription>
-                Add links to your posts, optional notes, and screenshots. You can attach several images.
-              </DialogDescription>
+              <DialogTitle>{t("campaigns.submitProofTitle")}</DialogTitle>
+              <DialogDescription>{t("campaigns.submitProofDesc")}</DialogDescription>
             </DialogHeader>
 
             <div className="space-y-5 py-2">
               <div className="space-y-2">
-                <Label htmlFor="submit-remarks">Remarks (optional)</Label>
+                <Label htmlFor="submit-remarks">{t("campaigns.remarksOptional")}</Label>
                 <Input
                   id="submit-remarks"
                   value={remarks}
                   onChange={(e) => setRemarks(e.target.value)}
-                  placeholder="Anything reviewers should know"
+                  placeholder={t("campaigns.remarksPlaceholder")}
                 />
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between gap-2">
-                  <Label>Links</Label>
+                  <Label>{t("campaigns.linksLabel")}</Label>
                   <Button type="button" variant="outline" size="sm" className="h-8 gap-1" onClick={addLinkRow}>
                     <Plus className="h-3.5 w-3.5" />
-                    Add link
+                    {t("campaigns.addLink")}
                   </Button>
                 </div>
                 <div className="space-y-2">
@@ -345,7 +346,7 @@ const CampaignDetail = () => {
                         inputMode="url"
                         value={link}
                         onChange={(e) => updateLink(index, e.target.value)}
-                        placeholder="https://..."
+                        placeholder={t("campaigns.linkPlaceholder")}
                         className="flex-1"
                         aria-label={`Link ${index + 1}`}
                       />
@@ -369,7 +370,7 @@ const CampaignDetail = () => {
               </div>
 
               <div className="space-y-2">
-                <Label>Screenshots (optional)</Label>
+                <Label>{t("campaigns.screenshotsOptional")}</Label>
                 <input
                   ref={fileInputRef}
                   key={fileInputKey}
@@ -404,25 +405,25 @@ const CampaignDetail = () => {
                     className="h-20 w-20 rounded-lg border-2 border-dashed border-border flex flex-col items-center justify-center gap-1 text-xs text-muted-foreground hover:bg-muted/60 transition-colors"
                   >
                     <Plus className="h-5 w-5" />
-                    Choose file
+                    {t("campaigns.chooseFile")}
                   </button>
                 </div>
-                <p className="text-xs text-muted-foreground">Tap Choose file again to add more images.</p>
+                <p className="text-xs text-muted-foreground">{t("campaigns.addMoreImagesHint")}</p>
               </div>
             </div>
 
             <DialogFooter className="gap-2 sm:gap-0 flex-col sm:flex-row">
               <Button type="button" variant="outline" onClick={() => handleDialogOpenChange(false)}>
-                Cancel
+                {t("campaigns.cancel")}
               </Button>
               <Button type="button" onClick={handleConfirmSubmit} disabled={submitPending || submittingAll}>
                 {submitPending || submittingAll ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Submitting…
+                    {t("campaigns.submitting")}
                   </>
                 ) : (
-                  "Submit"
+                  t("campaigns.submit")
                 )}
               </Button>
             </DialogFooter>
@@ -438,7 +439,7 @@ const CampaignDetail = () => {
         <Link to="/campaigns" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">Campaign Details</h1>
+        <h1 className="text-lg font-semibold">{t("campaigns.detailTitle")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-8 space-y-6">
@@ -458,7 +459,7 @@ const CampaignDetail = () => {
           <div className="absolute bottom-4 left-4 right-4 text-white">
             <Badge className="bg-success text-success-foreground border-0 mb-2">
               <Clock className="w-3 h-3 mr-1" />
-              {isActive ? "Active" : campaign.status_display ?? campaign.status}
+              {isActive ? t("campaigns.activeBadge") : campaign.status_display ?? campaign.status}
             </Badge>
             <h2 className="text-xl font-bold">{campaign.name}</h2>
           </div>
@@ -476,7 +477,7 @@ const CampaignDetail = () => {
             <Gift className="w-7 h-7 text-accent" />
           </div>
           <div className="flex-1">
-            <p className="text-sm text-muted-foreground">Commission</p>
+            <p className="text-sm text-muted-foreground">{t("campaigns.commissionLabel")}</p>
             <p className="text-2xl font-bold text-accent">
               {campaign.commission_type === "percentage" ? `${campaign.commission}%` : `रु ${campaign.commission}`}
             </p>
@@ -485,7 +486,7 @@ const CampaignDetail = () => {
 
         {campaign.description && (
           <div className="floating-card p-4">
-            <h3 className="font-semibold mb-2">About Campaign</h3>
+            <h3 className="font-semibold mb-2">{t("campaigns.aboutCampaign")}</h3>
             <p className="text-sm text-muted-foreground">{campaign.description}</p>
           </div>
         )}
@@ -496,7 +497,7 @@ const CampaignDetail = () => {
             className="floating-card p-4 w-full text-left"
             onClick={() => navigate(`/product/${relatedProduct.slug}`)}
           >
-            <p className="text-sm text-muted-foreground mb-2">Related product</p>
+            <p className="text-sm text-muted-foreground mb-2">{t("campaigns.relatedProduct")}</p>
             <div className="flex items-center gap-3">
               {(relatedProduct.image_url || relatedProduct.image) ? (
                 <img

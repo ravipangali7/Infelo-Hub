@@ -199,7 +199,14 @@ function EmptyNotificationsState({ variant }: { variant: "unread" | "read" }) {
 
 export type NotificationsInboxVariant = "client" | "admin";
 
-export function NotificationsInbox({ variant = "client" }: { variant?: NotificationsInboxVariant }) {
+export function NotificationsInbox({
+  variant = "client",
+  title: titleOverride,
+}: {
+  variant?: NotificationsInboxVariant;
+  /** When set (e.g. client page), replaces the default header title for that variant. */
+  title?: string;
+}) {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"unread" | "read">("unread");
   const { data, isLoading, error } = useClientNotifications();
@@ -229,7 +236,7 @@ export function NotificationsInbox({ variant = "client" }: { variant?: Notificat
   };
 
   const backHref = variant === "admin" ? "/system" : "/";
-  const title = variant === "admin" ? "My notifications" : "Notifications";
+  const title = titleOverride ?? (variant === "admin" ? "My notifications" : "Notifications");
   const subtitle =
     variant === "admin"
       ? "Alerts for your staff account (same inbox as the client API)."

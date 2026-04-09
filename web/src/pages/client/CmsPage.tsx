@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { ArrowLeft, FileText } from "lucide-react";
@@ -6,6 +7,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCmsPage } from "@/api/hooks";
 
 const CmsPage = () => {
+  const { t } = useTranslation("pages");
   const { slug } = useParams<{ slug: string }>();
 
   const { data: page, isLoading, error } = useCmsPage(slug ?? null);
@@ -14,12 +16,10 @@ const CmsPage = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-6 text-center">
         <FileText className="w-16 h-16 text-muted-foreground" />
-        <h1 className="text-xl font-semibold">Page Not Found</h1>
-        <p className="text-muted-foreground text-sm">
-          The page you are looking for doesn't exist or has been removed.
-        </p>
+        <h1 className="text-xl font-semibold">{t("misc.cms.notFound")}</h1>
+        <p className="text-muted-foreground text-sm">{t("misc.cms.notFoundDescription")}</p>
         <Button asChild variant="outline">
-          <Link to="/">Go Home</Link>
+          <Link to="/">{t("misc.cms.goHome")}</Link>
         </Button>
       </div>
     );
@@ -65,7 +65,7 @@ const CmsPage = () => {
           className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back
+          {t("misc.cms.back")}
         </Link>
 
         {/* Page image */}

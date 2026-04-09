@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Upload, CheckCircle2, Clock, XCircle, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +8,7 @@ import { useKycStatus, useSubmitKyc } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const KycPage = () => {
+  const { t } = useTranslation("pages");
   const [frontDoc, setFrontDoc] = useState<File | null>(null);
   const [backDoc, setBackDoc] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -59,7 +61,7 @@ const KycPage = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Failed to load KYC status.</p>
+        <p className="text-destructive">{t("misc.kyc.loadFailed")}</p>
       </div>
     );
   }
@@ -70,7 +72,7 @@ const KycPage = () => {
           <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-lg font-semibold">KYC Verification</h1>
+          <h1 className="text-lg font-semibold">{t("misc.kyc.title")}</h1>
         </header>
         <div className="client-page-container client-page-content pb-8">
           <Skeleton className="h-24 w-full rounded-xl mb-4" />
@@ -86,7 +88,7 @@ const KycPage = () => {
         <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">KYC Verification</h1>
+        <h1 className="text-lg font-semibold">{t("misc.kyc.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-8 space-y-6">

@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,17 +11,12 @@ import { UserPlus } from "lucide-react";
 
 const PHONE_REGEX = /^(97|98)\d{8}$/;
 
-function validatePassword(password: string): string | null {
-  if (!password || password.length < 6)
-    return "Password must be at least 6 characters.";
-  if (!/[A-Z]/.test(password))
-    return "Password must contain at least one uppercase letter.";
-  if (!/[a-z]/.test(password))
-    return "Password must contain at least one lowercase letter.";
-  if (!/\d/.test(password))
-    return "Password must contain at least one number.";
-  if (!/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\;'`~]/.test(password))
-    return "Password must contain at least one special character.";
+function validatePassword(password: string, t: (key: string) => string): string | null {
+  if (!password || password.length < 6) return t("register.passwordMin");
+  if (!/[A-Z]/.test(password)) return t("register.passwordUpper");
+  if (!/[a-z]/.test(password)) return t("register.passwordLower");
+  if (!/\d/.test(password)) return t("register.passwordDigit");
+  if (!/[!@#$%^&*(),.?":{}|<>_\-+=[\]\\;'`~]/.test(password)) return t("register.passwordSpecial");
   return null;
 }
 
@@ -30,6 +26,7 @@ function validatePhone(phone: string): boolean {
 }
 
 const Register = () => {
+  const { t } = useTranslation(["auth", "common"]);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -39,19 +36,24 @@ const Register = () => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const stageTitle = step === 1 ? "Create account" : step === 2 ? "Verify your phone" : "Complete your profile";
-  const stageSubtitle =
-    step === 1
-      ? "Start with your phone number"
-      : step === 2
-      ? "Enter the OTP we sent to your number"
-      : "Set your name and password";
+
+  const stageTitle = useMemo(() => {
+    if (step === 1) return t("register.step1Title");
+    if (step === 2) return t("register.step2Title");
+    return t("register.step3Title");
+  }, [step, t]);
+
+  const stageSubtitle = useMemo(() => {
+    if (step === 1) return t("register.step1Subtitle");
+    if (step === 2) return t("register.step2Subtitle");
+    return t("register.step3Subtitle");
+  }, [step, t]);
 
   const handleRequestOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     if (!validatePhone(phone)) {
-      setError("Phone must be 10 digits starting with 97 or 98.");
+      setError(t("register.phoneInvalid"));
       return;
     }
     setLoading(true);
@@ -59,7 +61,7 @@ const Register = () => {
       await registerRequestOtp(phone.replace(/\D/g, ""));
       setStep(2);
     } catch (err) {
-      setError((err as Error).message ?? "Failed to send OTP");
+      setError((err as Error).message ?? t("register.otpSendFailed"));
     } finally {
       setLoading(false);
     }
@@ -69,7 +71,7 @@ const Register = () => {
     e.preventDefault();
     setError("");
     if (otp.length !== 6) {
-      setError("Enter 6 digit OTP.");
+      setError(t("register.otpLength"));
       return;
     }
     setLoading(true);
@@ -77,7 +79,7 @@ const Register = () => {
       await registerVerifyOtp(phone.replace(/\D/g, ""), otp);
       setStep(3);
     } catch (err) {
-      setError((err as Error).message ?? "OTP verification failed");
+      setError((err as Error).message ?? t("register.otpFailed"));
     } finally {
       setLoading(false);
     }
@@ -88,17 +90,17 @@ const Register = () => {
     setError("");
     const fullName = name.trim();
     if (!fullName) {
-      setError("Full name is required.");
+      setError(t("register.nameRequired"));
       return;
     }
-    const pwError = validatePassword(password);
+    const pwError = validatePassword(password, t);
     if (pwError) {
       setError(pwError);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("register.passwordMismatch"));
       return;
     }
 
@@ -110,7 +112,7 @@ const Register = () => {
       navigate("/", { replace: true });
       window.location.reload();
     } catch (err) {
-      setError((err as Error).message ?? "Registration failed");
+      setError((err as Error).message ?? t("register.registerFailed"));
     } finally {
       setLoading(false);
     }
@@ -131,11 +133,11 @@ const Register = () => {
         {step === 1 && (
           <form onSubmit={handleRequestOtp} className="space-y-4">
             <div>
-              <Label htmlFor="phone">Phone Number</Label>
+              <Label htmlFor="phone">{t("login.phone")}</Label>
               <Input
                 id="phone"
                 type="text"
-                placeholder="98xxxxxxxx"
+                placeholder={t("login.phonePlaceholder")}
                 value={phone}
                 onChange={(e) => {
                   const v = e.target.value.replace(/\D/g, "").slice(0, 10);
@@ -149,14 +151,14 @@ const Register = () => {
             </div>
             {error && <p className="text-destructive text-sm">{error}</p>}
             <Button type="submit" className="w-full h-11 rounded-xl font-semibold" disabled={loading}>
-              {loading ? "Sending OTP…" : "Send OTP"}
+              {loading ? t("register.sending") : t("register.sendOtp")}
             </Button>
           </form>
         )}
         {step === 2 && (
           <form onSubmit={handleVerifyOtp} className="space-y-4">
             <div>
-              <Label>OTP</Label>
+              <Label>{t("register.otpLabel")}</Label>
               <div className="mt-2">
                 <InputOTP maxLength={6} value={otp} onChange={setOtp} containerClassName="justify-between">
                   <InputOTPGroup>
@@ -172,9 +174,11 @@ const Register = () => {
             </div>
             {error && <p className="text-destructive text-sm">{error}</p>}
             <div className="flex gap-2">
-              <Button type="button" variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => setStep(1)}>Back</Button>
+              <Button type="button" variant="outline" className="flex-1 h-11 rounded-xl" onClick={() => setStep(1)}>
+                {t("common:back")}
+              </Button>
               <Button type="submit" className="flex-1 h-11 rounded-xl font-semibold" disabled={loading}>
-                {loading ? "Verifying…" : "Verify OTP"}
+                {loading ? t("forgot.verifying") : t("register.verifyOtp")}
               </Button>
             </div>
           </form>
@@ -182,43 +186,53 @@ const Register = () => {
         {step === 3 && (
           <form onSubmit={handleComplete} className="space-y-4">
             <div>
-              <Label htmlFor="name">Full Name</Label>
-              <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="mt-2 h-11 rounded-xl" required />
+              <Label htmlFor="name">{t("register.fullNameLabel")}</Label>
+              <Input
+                id="name"
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="mt-2 h-11 rounded-xl"
+                required
+              />
             </div>
-          <div>
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              placeholder="Your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 h-11 rounded-xl"
-              required
-              autoComplete="new-password"
-            />
-          </div>
-          <div>
-            <Label htmlFor="confirmPassword">Confirm password</Label>
-            <Input
-              id="confirmPassword"
-              type="password"
-              placeholder="Re-enter password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-2 h-11 rounded-xl"
-              required
-              autoComplete="new-password"
-            />
-          </div>
-          {error && <p className="text-destructive text-sm">{error}</p>}
-          <Button type="submit" className="w-full h-11 rounded-xl font-semibold" disabled={loading}>
-            {loading ? "Creating account…" : "Complete Registration"}
-          </Button>
-        </form>
+            <div>
+              <Label htmlFor="password">{t("login.password")}</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder={t("register.passwordPlaceholder")}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-2 h-11 rounded-xl"
+                required
+                autoComplete="new-password"
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirmPassword">{t("register.confirmPassword")}</Label>
+              <Input
+                id="confirmPassword"
+                type="password"
+                placeholder={t("register.confirmPasswordPlaceholder")}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="mt-2 h-11 rounded-xl"
+                required
+                autoComplete="new-password"
+              />
+            </div>
+            {error && <p className="text-destructive text-sm">{error}</p>}
+            <Button type="submit" className="w-full h-11 rounded-xl font-semibold" disabled={loading}>
+              {loading ? t("register.creatingAccount") : t("register.completeRegister")}
+            </Button>
+          </form>
         )}
         <p className="text-xs text-center">
-          Already have an account? <Link to="/login" className="text-primary hover:underline">Log in</Link>
+          {t("register.haveAccount")}{" "}
+          <Link to="/login" className="text-primary hover:underline">
+            {t("register.signInLink")}
+          </Link>
         </p>
       </div>
     </div>

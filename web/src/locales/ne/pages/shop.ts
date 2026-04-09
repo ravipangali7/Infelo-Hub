@@ -1,0 +1,17 @@
+export default {
+  title: "पसल",
+  searchPlaceholder: "उत्पादन खोज्नुहोस्...",
+  featuredProducts: "विशेष उत्पादनहरू",
+  allProducts: "सबै उत्पादनहरू",
+  noProducts: "कुनै उत्पादन फेला परेन",
+  campaignHighlights: "अभियान हाइलाइटहरू",
+  viewAllLower: "सबै हेर्नुहोस्",
+  trustedTitle: "खुसी ग्राहकले विश्वास गरेको",
+  trustedBody: "वास्तविक मूल्याङ्कन र समीक्षा उपलब्ध भएपछि यहाँ देखिनेछ।",
+  outOfStock: "स्टक सकियो",
+  inStock: "स्टकमा छ",
+  affiliateShort: "सम्बद्ध",
+  affPercent: "{{pct}}% Aff",
+  affFixed: "रु {{amt}} Aff",
+  rewardSuffix: "पुरस्कार",
+} as const;

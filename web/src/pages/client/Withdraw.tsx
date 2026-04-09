@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Plus, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,12 +21,15 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
-const walletTypes = [
-  { id: "earning", name: "Earning Wallet" },
-  { id: "topup", name: "Top-up Wallet" },
-];
-
 const Withdraw = () => {
+  const { t } = useTranslation("pages");
+  const walletTypes = useMemo(
+    () => [
+      { id: "earning" as const, name: t("withdraw.earningWallet") },
+      { id: "topup" as const, name: t("withdraw.topupWallet") },
+    ],
+    [t],
+  );
   const [showForm, setShowForm] = useState(false);
   const [amount, setAmount] = useState("");
   const [walletType, setWalletType] = useState("earning");
@@ -87,21 +91,21 @@ const Withdraw = () => {
         <Link to="/wallet" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">Withdraw</h1>
+        <h1 className="text-lg font-semibold">{t("withdraw.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-8 space-y-6">
         <Alert className="border-warning/50 bg-warning/10">
           <AlertCircle className="h-4 w-4 text-warning" />
           <AlertDescription className="text-sm">
-            Withdrawals are processed within 24-48 hours after approval.
+            {t("withdraw.processingNote")}
           </AlertDescription>
         </Alert>
         {withdrawalDisabled && (
           <Alert className="border-destructive/50 bg-destructive/10">
             <AlertCircle className="h-4 w-4 text-destructive" />
             <AlertDescription className="text-sm">
-              Withdrawals are currently disabled by Administration.
+              {t("withdraw.disabledByAdmin")}
             </AlertDescription>
           </Alert>
         )}
@@ -109,21 +113,21 @@ const Withdraw = () => {
           <Alert className="border-amber-500/40 bg-amber-500/10">
             <AlertCircle className="h-4 w-4 text-amber-600" />
             <AlertDescription className="text-sm">
-              Verified identity (KYC) is required before you can withdraw.{" "}
+              {t("withdraw.kycRequired")}{" "}
               <Link to="/kyc" className="font-medium text-primary underline underline-offset-2">
-                Complete verification
+                {t("withdraw.completeVerification")}
               </Link>
             </AlertDescription>
           </Alert>
         )}
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-muted-foreground">Request history</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">{t("withdraw.requestHistory")}</h2>
           {prLoading ? (
             <Skeleton className="h-24 w-full rounded-xl" />
           ) : withdrawRequests.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-8 rounded-xl border border-dashed border-border">
-              No withdrawal requests yet
+              {t("withdraw.noRequests")}
             </p>
           ) : (
             <div className="space-y-3">
@@ -153,7 +157,7 @@ const Withdraw = () => {
           disabled={withdrawalDisabled || kycBlocksWithdraw}
           onClick={() => setShowForm(true)}
         >
-          Withdraw Fund
+          {t("withdraw.withdrawFund")}
         </Button>
 
         <Dialog open={showForm} onOpenChange={setShowForm}>
@@ -163,27 +167,21 @@ const Withdraw = () => {
             )}
           >
             <DialogHeader className="shrink-0 space-y-1 border-b border-border px-4 pb-3 pt-1 text-left sm:px-6">
-              <DialogTitle>Withdraw fund</DialogTitle>
+              <DialogTitle>{t("withdraw.dialogTitle")}</DialogTitle>
               <DialogDescription>
                 {hasApprovedPayoutAccount ? (
-                  <span className="block">
-                    Choose wallet, amount, and payout account. Withdrawals are reviewed before processing.
-                  </span>
+                  <span className="block">{t("withdraw.dialogDescHasAccount")}</span>
                 ) : (
                   <>
-                    <span className="block font-medium text-foreground">
-                      Step 1: Add a payout account and wait for approval. Then enter an amount and submit your withdrawal.
-                    </span>
-                    <span className="mt-1 block text-muted-foreground">
-                      You cannot request a withdrawal until at least one account is approved.
-                    </span>
+                    <span className="block font-medium text-foreground">{t("withdraw.dialogDescNoAccountStep1")}</span>
+                    <span className="mt-1 block text-muted-foreground">{t("withdraw.dialogDescNoAccountStep2")}</span>
                   </>
                 )}
               </DialogDescription>
             </DialogHeader>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
         <div className="floating-card p-4">
-          <Label className="text-sm font-medium mb-3 block">Select Wallet</Label>
+          <Label className="text-sm font-medium mb-3 block">{t("withdraw.selectWallet")}</Label>
           <RadioGroup value={walletType} onValueChange={setWalletType} className="space-y-3">
             {walletTypes.map((wallet) => {
               const bal = wallet.id === "earning" ? earning : topup;
@@ -214,7 +212,7 @@ const Withdraw = () => {
 
         <div className="floating-card p-4">
           <Label htmlFor="amount" className="text-sm font-medium">
-            Enter Amount
+            {t("withdraw.enterAmount")}
           </Label>
           <div className="relative mt-2">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground">रु</span>
@@ -227,26 +225,26 @@ const Withdraw = () => {
               className="pl-10 h-14 text-2xl font-bold"
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-2">Available: रु {balance.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground mt-2">
+            {t("withdraw.available", { amount: balance.toLocaleString() })}
+          </p>
           {!hasApprovedPayoutAccount && (
-            <p className="text-xs text-amber-700 dark:text-amber-500/90 mt-2">
-              After a payout account is approved, you can enter an amount and complete your withdrawal here.
-            </p>
+            <p className="text-xs text-amber-700 dark:text-amber-500/90 mt-2">{t("withdraw.payoutPendingHint")}</p>
           )}
         </div>
 
         <div className="floating-card p-4">
-          <Label className="text-sm font-medium mb-3 block">Payout account</Label>
+          <Label className="text-sm font-medium mb-3 block">{t("withdraw.payoutAccount")}</Label>
           <div className="space-y-3">
             {rejectedPayoutAccounts.length > 0 && !hasApprovedPayoutAccount && (
               <p className="text-sm text-muted-foreground">
-                A previous payout account was not approved. Add a new one from payout accounts to continue.
+                {t("withdraw.rejectedHint")}
               </p>
             )}
             {!hasApprovedPayoutAccount && hasPendingPayoutAccount && (
               <div className="space-y-2">
                 <p className="text-sm text-muted-foreground">
-                  These accounts are waiting for admin approval. You can withdraw as soon as one is approved.
+                  {t("withdraw.pendingListIntro")}
                 </p>
                 {pendingPayoutAccounts.map((account) => (
                   <div
@@ -263,7 +261,7 @@ const Withdraw = () => {
                       </p>
                     </div>
                     <Badge variant="outline" className="shrink-0 text-[10px]">
-                      Pending approval
+                      {t("withdraw.pendingApproval")}
                     </Badge>
                   </div>
                 ))}
@@ -271,8 +269,7 @@ const Withdraw = () => {
             )}
             {!hasApprovedPayoutAccount && !hasPendingPayoutAccount && (
               <p className="text-sm text-muted-foreground">
-                You need an approved payout account before you can withdraw. Add your bank or wallet details, then wait for
-                approval. Use the button at the bottom to go to payout accounts.
+                {t("withdraw.needAccountHint")}
               </p>
             )}
             {payoutAccounts.map((account) => (
@@ -302,7 +299,7 @@ const Withdraw = () => {
               <Button variant="outline" className="w-full h-10" asChild>
                 <Link to="/payout-accounts" onClick={() => setShowForm(false)}>
                   <Plus className="w-4 h-4 mr-2" />
-                  Add or manage payout accounts
+                  {t("withdraw.addManagePayout")}
                 </Link>
               </Button>
             )}
@@ -311,20 +308,20 @@ const Withdraw = () => {
 
         {amount && Number(amount) > 0 && (
           <div className="floating-card p-4">
-            <h3 className="font-semibold mb-3">Summary</h3>
+            <h3 className="font-semibold mb-3">{t("withdraw.summary")}</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Amount</span>
+                <span className="text-muted-foreground">{t("withdraw.amount")}</span>
                 <span>रु {Number(amount).toLocaleString()}</span>
               </div>
               {fee > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-muted-foreground">Fee</span>
+                  <span className="text-muted-foreground">{t("withdraw.fee")}</span>
                   <span className="text-destructive">-रु {fee.toFixed(2)}</span>
                 </div>
               )}
               <div className="border-t border-border pt-2 flex justify-between font-semibold">
-                <span>You'll receive</span>
+                <span>{t("withdraw.youWillReceive")}</span>
                 <span className="text-success">रु {netAmount.toFixed(2)}</span>
               </div>
             </div>
@@ -333,7 +330,7 @@ const Withdraw = () => {
 
         {createRequest.isError && (
           <p className="text-destructive text-sm">
-            {(createRequest.error as ApiError).detail ?? "Failed to submit withdrawal request."}
+            {(createRequest.error as ApiError).detail ?? t("withdraw.submitFailed")}
           </p>
         )}
         {hasApprovedPayoutAccount ? (
@@ -350,19 +347,17 @@ const Withdraw = () => {
             }
             onClick={handleSubmit}
           >
-            {createRequest.isPending ? "Submitting…" : "Request withdrawal"}
+            {createRequest.isPending ? t("withdraw.submitting") : t("withdraw.requestWithdrawal")}
           </Button>
         ) : hasPendingPayoutAccount ? (
           <div className="space-y-2">
             <Button type="button" className="w-full h-12" disabled variant="secondary">
-              Waiting for payout account approval
+              {t("withdraw.waitingApproval")}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Withdrawal is unavailable until an account is approved. This is usually reviewed within 24–48 hours.
-            </p>
+            <p className="text-center text-xs text-muted-foreground">{t("withdraw.waitingNote")}</p>
             <Button variant="outline" className="w-full h-11" asChild>
               <Link to="/payout-accounts" onClick={() => setShowForm(false)}>
-                View payout accounts
+                {t("withdraw.viewPayoutAccounts")}
               </Link>
             </Button>
           </div>
@@ -370,7 +365,7 @@ const Withdraw = () => {
           <Button className="w-full h-12" asChild>
             <Link to="/payout-accounts" onClick={() => setShowForm(false)}>
               <Plus className="w-4 h-4 mr-2" />
-              Add payout account to continue
+              {t("withdraw.addPayoutToContinue")}
             </Link>
           </Button>
         )}

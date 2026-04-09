@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { Users, UserCheck, TrendingUp, ChevronRight, GitBranch } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +18,7 @@ function countTreeNodes(node: { user?: unknown; children?: unknown[] }): number 
 }
 
 const Network = () => {
+  const { t } = useTranslation("pages");
   const { data: referralsData, isLoading: refLoading } = useReferrals();
   const { data: treeData, isLoading: treeLoading } = useTeamTree();
 
@@ -30,7 +32,7 @@ const Network = () => {
   return (
     <div className="min-h-screen">
       <header className="client-page-container client-page-content pt-6 pb-4">
-        <h1 className="text-2xl font-bold font-display">My Network</h1>
+        <h1 className="text-2xl font-bold font-display">{t("misc.network.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content space-y-6 pb-8">
@@ -47,24 +49,24 @@ const Network = () => {
               <div className="stat-card">
                 <div className="flex items-center gap-2 mb-2">
                   <Users className="w-4 h-4 text-primary" />
-                  <span className="text-xs text-muted-foreground">Total Team</span>
+                  <span className="text-xs text-muted-foreground">{t("misc.network.totalTeam")}</span>
                 </div>
                 <p className="text-2xl font-bold">{totalTeam}</p>
               </div>
               <div className="stat-card">
                 <div className="flex items-center gap-2 mb-2">
                   <UserCheck className="w-4 h-4 text-success" />
-                  <span className="text-xs text-muted-foreground">Active Referrals</span>
+                  <span className="text-xs text-muted-foreground">{t("misc.network.activeReferrals")}</span>
                 </div>
                 <p className="text-2xl font-bold text-success">{activeReferrals}</p>
               </div>
               <div className="stat-card">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp className="w-4 h-4 text-primary" />
-                  <span className="text-xs text-muted-foreground">Direct Referrals</span>
+                  <span className="text-xs text-muted-foreground">{t("misc.network.directReferrals")}</span>
                 </div>
                 <p className="text-2xl font-bold">{directReferrals}</p>
-                <p className="text-xs text-success">{activeReferrals} active</p>
+                <p className="text-xs text-success">{t("misc.network.activeCount", { count: activeReferrals })}</p>
               </div>
             </div>
 
@@ -77,8 +79,8 @@ const Network = () => {
                   <GitBranch className="w-5 h-5 text-primary" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">Team Tree</p>
-                  <p className="text-xs text-muted-foreground">View hierarchy</p>
+                  <p className="font-medium text-sm">{t("misc.network.teamTree")}</p>
+                  <p className="text-xs text-muted-foreground">{t("misc.network.viewHierarchy")}</p>
                 </div>
               </Link>
               <Link
@@ -89,8 +91,8 @@ const Network = () => {
                   <Users className="w-5 h-5 text-accent" />
                 </div>
                 <div>
-                  <p className="font-medium text-sm">All Referrals</p>
-                  <p className="text-xs text-muted-foreground">View list</p>
+                  <p className="font-medium text-sm">{t("misc.network.allReferrals")}</p>
+                  <p className="text-xs text-muted-foreground">{t("misc.network.viewList")}</p>
                 </div>
               </Link>
             </div>
@@ -98,14 +100,14 @@ const Network = () => {
             <Tabs defaultValue="referrals" className="w-full">
               <TabsList className="w-full bg-muted/50 p-1 rounded-xl">
                 <TabsTrigger value="referrals" className="flex-1 rounded-lg">
-                  My Referrals
+                  {t("misc.network.myReferralsTab")}
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="referrals" className="mt-4 space-y-3">
                 {referrals.length === 0 ? (
                   <div className="floating-card p-6 text-center text-muted-foreground">
-                    No referrals yet. Share your link to grow your network.
+                    {t("misc.network.emptyReferrals")}
                   </div>
                 ) : (
                   referrals.slice(0, 5).map((ref) => (
@@ -143,7 +145,7 @@ const Network = () => {
                     to="/referrals"
                     className="block text-center text-sm text-primary font-medium py-3"
                   >
-                    View All Referrals <ChevronRight className="w-4 h-4 inline" />
+                    {t("misc.network.viewAllReferrals")} <ChevronRight className="w-4 h-4 inline" />
                   </Link>
                 )}
               </TabsContent>

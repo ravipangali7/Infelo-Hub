@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, TrendingUp, ArrowDownToLine, ArrowUpFromLine, Filter } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -19,6 +20,7 @@ function getColor(type: string) {
 }
 
 const Transactions = () => {
+  const { t } = useTranslation("pages");
   const [tab, setTab] = useState("all");
   const { data, isLoading } = useTransactions(
     tab === "all" ? undefined : (tab === "earning" ? "earning" : tab === "deposit" ? "deposit" : "withdrawal")
@@ -33,7 +35,7 @@ const Transactions = () => {
             <Link to="/wallet" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-lg font-semibold">Transactions</h1>
+            <h1 className="text-lg font-semibold">{t("misc.transactions.title")}</h1>
           </div>
           <button type="button" className="p-3 rounded-xl bg-card border border-border">
             <Filter className="w-4 h-4" />

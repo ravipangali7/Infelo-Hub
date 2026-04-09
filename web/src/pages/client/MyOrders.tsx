@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -13,61 +15,72 @@ import { Badge } from "@/components/ui/badge";
 import { useOrders } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 
-const STATUS_META: Record<string, { icon: typeof Clock; label: string; cardBorder: string; badgeClass: string }> = {
-  delivered: {
-    icon: CheckCircle2,
-    label: "Delivered",
-    cardBorder: "border-l-success",
-    badgeClass: "bg-success/10 text-success",
-  },
-  shipped: {
-    icon: Truck,
-    label: "Shipped",
-    cardBorder: "border-l-primary",
-    badgeClass: "bg-primary/10 text-primary",
-  },
-  processing: {
-    icon: Package,
-    label: "Processing",
-    cardBorder: "border-l-warning",
-    badgeClass: "bg-warning/10 text-warning",
-  },
-  cancelled: {
-    icon: XCircle,
-    label: "Cancelled",
-    cardBorder: "border-l-destructive",
-    badgeClass: "bg-destructive/10 text-destructive",
-  },
-  rejected: {
-    icon: XCircle,
-    label: "Rejected",
-    cardBorder: "border-l-destructive",
-    badgeClass: "bg-destructive/10 text-destructive",
-  },
-  pending: {
-    icon: Clock,
-    label: "Pending",
-    cardBorder: "border-l-border",
-    badgeClass: "bg-muted text-muted-foreground",
-  },
-};
-
 const PAYMENT_STATUS_CLASS: Record<string, string> = {
   paid: "bg-success/10 text-success",
   pending: "bg-warning/10 text-warning",
   failed: "bg-destructive/10 text-destructive",
 };
 
-function getItemPreview(items: { product_name: string }[] = []) {
+function getItemPreview(items: { product_name: string }[] = [], t: (k: string, o?: Record<string, unknown>) => string) {
   if (items.length === 0) return null;
   if (items.length === 1) return items[0].product_name;
   if (items.length === 2) return `${items[0].product_name}, ${items[1].product_name}`;
-  return `${items[0].product_name}, ${items[1].product_name} +${items.length - 2} more`;
+  return `${items[0].product_name}, ${items[1].product_name} ${t("orders.itemPreviewMore", { count: items.length - 2 })}`;
 }
 
 const MyOrders = () => {
+  const { t } = useTranslation("pages");
   const { data, isLoading, error } = useOrders();
   const orders = data?.results ?? [];
+
+  const STATUS_META = useMemo(
+    () =>
+      ({
+        delivered: {
+          icon: CheckCircle2,
+          label: t("orders.status.delivered"),
+          cardBorder: "border-l-success",
+          badgeClass: "bg-success/10 text-success",
+        },
+        shipped: {
+          icon: Truck,
+          label: t("orders.status.shipped"),
+          cardBorder: "border-l-primary",
+          badgeClass: "bg-primary/10 text-primary",
+        },
+        processing: {
+          icon: Package,
+          label: t("orders.status.processing"),
+          cardBorder: "border-l-warning",
+          badgeClass: "bg-warning/10 text-warning",
+        },
+        cancelled: {
+          icon: XCircle,
+          label: t("orders.status.cancelled"),
+          cardBorder: "border-l-destructive",
+          badgeClass: "bg-destructive/10 text-destructive",
+        },
+        rejected: {
+          icon: XCircle,
+          label: t("orders.status.rejected"),
+          cardBorder: "border-l-destructive",
+          badgeClass: "bg-destructive/10 text-destructive",
+        },
+        pending: {
+          icon: Clock,
+          label: t("orders.status.pending"),
+          cardBorder: "border-l-border",
+          badgeClass: "bg-muted text-muted-foreground",
+        },
+      }) as Record<
+        string,
+        { icon: typeof Clock; label: string; cardBorder: string; badgeClass: string }
+      >,
+    [t],
+  );
+
+  const orderCountLabel =
+    orders.length === 1 ? t("orders.orderSingular", { count: orders.length }) : t("orders.orderPlural", { count: orders.length });
 
   return (
     <div className="min-h-screen bg-background">
@@ -76,10 +89,8 @@ const MyOrders = () => {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-lg font-semibold font-display">My Orders</h1>
-          {!isLoading && !error && (
-            <p className="text-xs text-muted-foreground">{orders.length} {orders.length === 1 ? "order" : "orders"}</p>
-          )}
+          <h1 className="text-lg font-semibold font-display">{t("orders.myOrders")}</h1>
+          {!isLoading && !error && <p className="text-xs text-muted-foreground">{orderCountLabel}</p>}
         </div>
       </header>
 
@@ -93,8 +104,8 @@ const MyOrders = () => {
         ) : error ? (
           <div className="floating-card p-8 text-center text-muted-foreground flex flex-col items-center gap-2">
             <XCircle className="w-10 h-10 text-destructive/50" />
-            <p className="font-medium text-foreground">Failed to load orders.</p>
-            <p className="text-sm">Please try refreshing the page.</p>
+            <p className="font-medium text-foreground">{t("orders.failedLoad")}</p>
+            <p className="text-sm">{t("orders.tryRefresh")}</p>
           </div>
         ) : orders.length === 0 ? (
           <div className="floating-card p-10 text-center flex flex-col items-center gap-4">
@@ -102,14 +113,14 @@ const MyOrders = () => {
               <ShoppingBag className="w-10 h-10 text-primary/60" />
             </div>
             <div>
-              <p className="font-semibold text-lg font-display">No Orders Yet</p>
-              <p className="text-sm text-muted-foreground mt-1">Start shopping and your orders will appear here.</p>
+              <p className="font-semibold text-lg font-display">{t("orders.emptyTitle")}</p>
+              <p className="text-sm text-muted-foreground mt-1">{t("orders.emptyHint")}</p>
             </div>
             <Link
               to="/shop"
               className="bg-primary text-white text-sm font-semibold px-6 py-2.5 rounded-xl hover:bg-primary/90 transition-colors"
             >
-              Browse Shop
+              {t("orders.browseShop")}
             </Link>
           </div>
         ) : (
@@ -117,8 +128,10 @@ const MyOrders = () => {
             const status = STATUS_META[order.status] ?? STATUS_META.pending;
             const StatusIcon = status.icon;
             const date = order.created_at ? new Date(order.created_at).toLocaleDateString() : "";
-            const itemPreview = getItemPreview(order.items ?? []);
+            const itemPreview = getItemPreview(order.items ?? [], t);
             const itemCount = order.items?.length ?? 0;
+            const itemsLabel =
+              itemCount === 1 ? t("orders.itemsSingular", { count: itemCount }) : t("orders.itemsPlural", { count: itemCount });
 
             return (
               <Link
@@ -126,7 +139,6 @@ const MyOrders = () => {
                 to={`/orders/${order.id}`}
                 className={`floating-card p-4 flex flex-col gap-3 border-l-4 ${status.cardBorder} hover:shadow-lg transition-shadow`}
               >
-                {/* Top row */}
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <div className="flex items-center gap-2">
@@ -140,28 +152,24 @@ const MyOrders = () => {
                   </div>
                   <div className="flex items-center gap-1 shrink-0">
                     {order.payment_status && (
-                      <Badge className={`${PAYMENT_STATUS_CLASS[order.payment_status] ?? "bg-muted text-muted-foreground"} border-0 text-[10px] px-2 py-0.5 capitalize`}>
+                      <Badge
+                        className={`${PAYMENT_STATUS_CLASS[order.payment_status] ?? "bg-muted text-muted-foreground"} border-0 text-[10px] px-2 py-0.5 capitalize`}
+                      >
                         {order.payment_status_display ?? order.payment_status}
                       </Badge>
                     )}
                   </div>
                 </div>
 
-                {/* Item preview */}
-                {itemPreview && (
-                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-1">
-                    {itemPreview}
-                  </p>
-                )}
+                {itemPreview && <p className="text-xs text-muted-foreground leading-relaxed line-clamp-1">{itemPreview}</p>}
 
-                {/* Bottom row */}
                 <div className="flex items-center justify-between pt-2 border-t border-border">
                   <div>
-                    <p className="text-xs text-muted-foreground">{itemCount} {itemCount === 1 ? "item" : "items"}</p>
+                    <p className="text-xs text-muted-foreground">{itemsLabel}</p>
                     <p className="font-bold text-primary">रु {Number(order.total).toLocaleString()}</p>
                   </div>
                   <div className="flex items-center gap-1 text-xs text-primary font-medium">
-                    View Details
+                    {t("orders.viewDetails")}
                     <ChevronRight className="w-4 h-4" />
                   </div>
                 </div>

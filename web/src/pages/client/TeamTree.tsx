@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, User, ChevronDown, ChevronRight } from "lucide-react";
 import { useState } from "react";
@@ -12,6 +13,7 @@ interface TreeNode {
 }
 
 const TreeNodeComponent = ({ node, level = 0 }: { node: TreeNode; level?: number }) => {
+  const { t } = useTranslation("pages");
   const [expanded, setExpanded] = useState(level < 2);
   const hasChildren = node.children?.length > 0;
   const u = node.user;
@@ -49,7 +51,9 @@ const TreeNodeComponent = ({ node, level = 0 }: { node: TreeNode; level?: number
               {pkg}
             </Badge>
             {u?.status && u.status !== "active" && (
-              <Badge variant="outline" className="text-[10px]">Inactive</Badge>
+              <Badge variant="outline" className="text-[10px]">
+                {t("misc.teamTree.inactive")}
+              </Badge>
             )}
           </div>
         </div>
@@ -67,12 +71,13 @@ const TreeNodeComponent = ({ node, level = 0 }: { node: TreeNode; level?: number
 };
 
 const TeamTree = () => {
+  const { t } = useTranslation("pages");
   const { data, isLoading, error } = useTeamTree();
 
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Failed to load team tree.</p>
+        <p className="text-destructive">{t("misc.teamTree.failed")}</p>
       </div>
     );
   }
@@ -83,7 +88,7 @@ const TeamTree = () => {
           <Link to="/network" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-lg font-semibold">Team Tree</h1>
+          <h1 className="text-lg font-semibold">{t("misc.teamTree.title")}</h1>
         </header>
         <div className="client-page-container client-page-content pb-8">
           <Skeleton className="h-16 w-full rounded-xl mb-2" />
@@ -101,14 +106,12 @@ const TeamTree = () => {
         <Link to="/network" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">Team Tree</h1>
+        <h1 className="text-lg font-semibold">{t("misc.teamTree.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-8">
         {!root.user && !root.children?.length ? (
-          <div className="floating-card p-8 text-center text-muted-foreground">
-            No team members yet. Refer friends to grow your tree.
-          </div>
+          <div className="floating-card p-8 text-center text-muted-foreground">{t("misc.teamTree.empty")}</div>
         ) : (
           <TreeNodeComponent node={root} />
         )}

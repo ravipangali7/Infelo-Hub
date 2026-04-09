@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Star, CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
@@ -7,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const packageColors = ["from-yellow-400 to-orange-500", "from-purple-400 to-purple-600", "from-slate-400 to-slate-600", "from-emerald-400 to-teal-600"];
 
 const MyPackages = () => {
+  const { t } = useTranslation("pages");
   const { data: profile } = useProfile();
   const { data: packagesData, isLoading, error } = usePackages();
   const packages = packagesData?.results ?? [];
@@ -15,7 +17,7 @@ const MyPackages = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-destructive">Failed to load packages.</p>
+        <p className="text-destructive">{t("misc.myPackages.loadFailed")}</p>
       </div>
     );
   }
@@ -26,13 +28,13 @@ const MyPackages = () => {
         <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <h1 className="text-lg font-semibold">My Packages</h1>
+        <h1 className="text-lg font-semibold">{t("misc.myPackages.title")}</h1>
       </header>
 
       <div className="client-page-container client-page-content pb-8 space-y-6">
         {currentPackageName && (
           <section>
-            <h2 className="text-sm font-medium text-muted-foreground mb-3">Active Package</h2>
+            <h2 className="text-sm font-medium text-muted-foreground mb-3">{t("misc.myPackages.activePackage")}</h2>
             <div className="bg-gradient-to-br from-yellow-400 to-orange-500 text-white rounded-2xl p-5 relative overflow-hidden">
               <div className="relative z-10">
                 <div className="flex items-center justify-between mb-3">
@@ -41,7 +43,7 @@ const MyPackages = () => {
                     <h3 className="text-xl font-bold">{currentPackageName}</h3>
                   </div>
                   <Badge className="bg-white/20 text-white border-0">
-                    <CheckCircle2 className="w-3 h-3 mr-1" /> Active
+                    <CheckCircle2 className="w-3 h-3 mr-1" /> {t("misc.myPackages.active")}
                   </Badge>
                 </div>
               </div>

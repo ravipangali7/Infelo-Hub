@@ -5,6 +5,7 @@ import {
   Tag, Store, CheckCircle, Package, ChevronDown, ChevronUp, Zap, Download,
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useProduct, useProfile, useWishlistIds, useAddToWishlist, useRemoveFromWishlist } from "@/api/hooks";
@@ -42,6 +43,7 @@ function PurchaseBar({
   onBuyNow,
   className,
 }: PurchaseBarProps) {
+  const { t } = useTranslation(["pages", "common"]);
   return (
     <div className={cn("space-y-2.5", className)}>
       <div className="flex items-center justify-between">
@@ -65,8 +67,10 @@ function PurchaseBar({
           </button>
         </div>
         <div className="text-right">
-          <p className="text-xs text-muted-foreground">Total</p>
-          <p className="font-bold text-primary text-lg">रु {lineTotal.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground">{t("pages:product.total")}</p>
+          <p className="font-bold text-primary text-lg">
+            {t("common:currencyShort")} {lineTotal.toLocaleString()}
+          </p>
         </div>
       </div>
       <div className="flex gap-3">
@@ -77,7 +81,7 @@ function PurchaseBar({
           onClick={onAddToCart}
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
-          Add to Cart
+          {t("pages:product.addToCart")}
         </Button>
         <Button
           className="flex-1 h-12 font-bold"
@@ -85,7 +89,7 @@ function PurchaseBar({
           onClick={onBuyNow}
         >
           <Zap className="w-4 h-4 mr-2" />
-          Buy Now
+          {t("pages:product.buyNow")}
         </Button>
       </div>
     </div>
@@ -93,6 +97,7 @@ function PurchaseBar({
 }
 
 const ProductDetail = () => {
+  const { t } = useTranslation(["pages", "common", "client"]);
   const { slug } = useParams<{ slug: string }>();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -114,19 +119,19 @@ const ProductDetail = () => {
 
   const handleWishlistToggle = () => {
     if (!isLoggedIn) {
-      toast.error("Please log in to use wishlist");
+      toast.error(t("pages:product.loginForWishlist"));
       return;
     }
     if (!productId) return;
     if (isWishlisted) {
       removeFromWishlist.mutate(productId, {
-        onSuccess: () => toast.success("Removed from wishlist"),
-        onError: () => toast.error("Failed to update wishlist"),
+        onSuccess: () => toast.success(t("pages:product.removedWishlist")),
+        onError: () => toast.error(t("pages:product.wishlistFailed")),
       });
     } else {
       addToWishlist.mutate(productId, {
-        onSuccess: () => toast.success("Added to wishlist"),
-        onError: () => toast.error("Failed to update wishlist"),
+        onSuccess: () => toast.success(t("pages:product.addedWishlist")),
+        onError: () => toast.error(t("pages:product.wishlistFailed")),
       });
     }
   };
@@ -143,7 +148,7 @@ const ProductDetail = () => {
   const handleShare = async () => {
     // Use the Django OG share URL so social media platforms get proper image previews
     const shareUrl = slug ? buildAffiliateShareUrl() : window.location.href;
-    const title = product?.name ?? "Check out this product";
+    const title = product?.name ?? t("pages:product.shareDefaultTitle");
     const text = product?.short_description || title;
     if (navigator.share) {
       try {
@@ -154,9 +159,9 @@ const ProductDetail = () => {
     } else {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        toast.success("Link copied to clipboard");
+        toast.success(t("pages:product.linkCopied"));
       } catch {
-        toast.error("Could not copy link");
+        toast.error(t("pages:product.couldNotCopyLink"));
       }
     }
   };
@@ -180,8 +185,10 @@ const ProductDetail = () => {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-4">
         <Package className="w-16 h-16 text-muted-foreground" />
-        <p className="text-destructive font-medium">Product not found</p>
-        <Button variant="outline" asChild><Link to="/shop">Back to Shop</Link></Button>
+        <p className="text-destructive font-medium">{t("pages:product.notFound")}</p>
+        <Button variant="outline" asChild>
+          <Link to="/shop">{t("pages:product.backToShop")}</Link>
+        </Button>
       </div>
     );
   }
@@ -223,7 +230,9 @@ const ProductDetail = () => {
       return;
     }
     addToCart(product, quantity);
-    toast.success("Added to cart", { description: `${product.name} ×${quantity}` });
+    toast.success(t("pages:product.addedToCart"), {
+      description: t("pages:product.addedToCartDesc", { name: product.name, qty: quantity }),
+    });
   };
 
   const handleBuyNow = () => {
@@ -235,8 +244,9 @@ const ProductDetail = () => {
     navigate("/checkout");
   };
 
-  const pageTitle = product ? `${product.name} | Infelo Hub` : "Infelo Hub";
-  const pageDesc = product?.short_description || (product ? `Buy ${product.name} on Infelo Hub` : "");
+  const pageTitle = product ? `${product.name} | ${t("client:brand")}` : t("client:brand");
+  const pageDesc =
+    product?.short_description || (product ? t("pages:product.buyOnHub", { name: product.name }) : "");
   const pageImage = toAbsoluteUrl(mainImage || product?.image_url || product?.image);
   const canonicalUrl = slug ? `${window.location.origin}/product/${slug}` : window.location.href;
 
@@ -247,7 +257,7 @@ const ProductDetail = () => {
         {pageDesc && <meta name="description" content={pageDesc} />}
         <link rel="canonical" href={canonicalUrl} />
         <meta property="og:type" content="product" />
-        <meta property="og:site_name" content="Infelo Hub" />
+        <meta property="og:site_name" content={t("client:brand")} />
         <meta property="og:title" content={pageTitle} />
         {pageDesc && <meta property="og:description" content={pageDesc} />}
         <meta property="og:url" content={canonicalUrl} />
@@ -372,7 +382,7 @@ const ProductDetail = () => {
                     : "border-destructive/30 bg-destructive/20 text-destructive"
                 }`}
               >
-                {product.stock > 0 ? "In stock" : "Out of stock"}
+                {product.stock > 0 ? t("pages:product.inStock") : t("pages:product.outOfStock")}
               </span>
             </div>
           </div>
@@ -403,7 +413,7 @@ const ProductDetail = () => {
             className="mb-1 hidden items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground lg:inline-flex"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to shop
+            {t("pages:product.backToShopLink")}
           </Link>
 
           {/* Title row: desktop puts actions beside heading */}
@@ -416,7 +426,7 @@ const ProductDetail = () => {
                 type="button"
                 onClick={handleWishlistToggle}
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card shadow-sm transition-colors hover:bg-muted/60"
-                aria-label="Wishlist"
+                aria-label={t("pages:product.wishlistAria")}
               >
                 <Heart className={`h-5 w-5 ${isWishlisted ? "fill-red-500 text-red-500" : ""}`} />
               </button>
@@ -424,7 +434,7 @@ const ProductDetail = () => {
                 type="button"
                 onClick={handleShare}
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card shadow-sm transition-colors hover:bg-muted/60"
-                aria-label="Share"
+                aria-label={t("pages:product.shareAria")}
               >
                 <Share2 className="h-5 w-5" />
               </button>
@@ -432,7 +442,7 @@ const ProductDetail = () => {
                 href={mainImage}
                 download
                 className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/60 bg-card shadow-sm transition-colors hover:bg-muted/60"
-                aria-label="Download image"
+                aria-label={t("pages:product.downloadImageAria")}
               >
                 <Download className="h-5 w-5" />
               </a>
@@ -469,19 +479,21 @@ const ProductDetail = () => {
             )}
             {product.sku && (
               <span className="inline-flex items-center gap-1 text-xs bg-muted text-muted-foreground px-2.5 py-1 rounded-full font-medium">
-                SKU: {product.sku}
+                {t("pages:product.skuLabel", { sku: product.sku })}
               </span>
             )}
           </div>
 
           {/* Price */}
           <div className="flex items-baseline gap-3">
-            <span className="text-4xl font-black text-primary">रु {sellingPrice.toLocaleString()}</span>
+            <span className="text-4xl font-black text-primary">
+              {t("common:currencyShort")} {sellingPrice.toLocaleString()}
+            </span>
             {Number(product.discount) > 0 && (
               <Badge variant="secondary" className="text-xs">
                 {product.discount_type === "percentage"
-                  ? `-${product.discount}%`
-                  : `रु ${product.discount} off`}
+                  ? t("pages:home.discountPercent", { pct: product.discount })
+                  : t("pages:product.discountOff", { amt: product.discount })}
               </Badge>
             )}
           </div>
@@ -495,13 +507,14 @@ const ProductDetail = () => {
             </div>
             <div>
               <p className="font-semibold text-success text-sm">
-                Earn {product.purchase_reward_type === "percentage"
-                  ? `${Number(product.purchase_reward).toFixed(0)}%`
-                  : `रु ${product.purchase_reward}`} Cashback
+                {t("pages:product.earnCashback", {
+                  value:
+                    product.purchase_reward_type === "percentage"
+                      ? `${Number(product.purchase_reward).toFixed(0)}%`
+                      : `${t("common:currencyShort")} ${product.purchase_reward}`,
+                })}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Credited to your earning wallet after delivery
-              </p>
+              <p className="text-xs text-muted-foreground">{t("pages:product.cashbackSub")}</p>
             </div>
           </div>
         )}
@@ -514,13 +527,14 @@ const ProductDetail = () => {
             </div>
             <div>
               <p className="font-semibold text-accent text-sm">
-                {product.affiliation_reward_type === "percentage"
-                  ? `${Number(product.affiliation_reward).toFixed(0)}%`
-                  : `रु ${product.affiliation_reward}`} Commission on Referral
+                {t("pages:product.commissionReferral", {
+                  value:
+                    product.affiliation_reward_type === "percentage"
+                      ? `${Number(product.affiliation_reward).toFixed(0)}%`
+                      : `${t("common:currencyShort")} ${product.affiliation_reward}`,
+                })}
               </p>
-              <p className="text-xs text-muted-foreground">
-                Share this product and earn when someone buys
-              </p>
+              <p className="text-xs text-muted-foreground">{t("pages:product.affiliateSub")}</p>
             </div>
           </div>
         )}
@@ -528,10 +542,10 @@ const ProductDetail = () => {
         {/* Guarantees */}
         <div className="grid grid-cols-2 gap-2 lg:max-w-lg">
           {[
-            { icon: CheckCircle, text: "Genuine Product" },
-            { icon: Package, text: "Secure Packaging" },
-          ].map(({ icon: Icon, text }) => (
-            <div key={text} className="flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2.5">
+            { icon: CheckCircle, text: t("pages:product.genuineProduct"), key: "genuine" },
+            { icon: Package, text: t("pages:product.securePackaging"), key: "pack" },
+          ].map(({ icon: Icon, text, key }) => (
+            <div key={key} className="flex items-center gap-2 rounded-xl bg-muted/60 px-3 py-2.5">
               <Icon className="w-4 h-4 text-primary flex-shrink-0" />
               <span className="text-xs font-medium">{text}</span>
             </div>
@@ -553,7 +567,7 @@ const ProductDetail = () => {
         {/* Description */}
         {descText && (
           <div className="floating-card p-4 space-y-2">
-            <h3 className="font-semibold text-sm">Description</h3>
+            <h3 className="font-semibold text-sm">{t("pages:product.description")}</h3>
             <p className="text-muted-foreground text-sm leading-relaxed">{descText}</p>
             {hasLongDesc && (
               <button
@@ -562,9 +576,15 @@ const ProductDetail = () => {
                 className="flex items-center gap-1 text-xs text-primary font-medium mt-1"
               >
                 {descExpanded ? (
-                  <><ChevronUp className="w-3 h-3" />Show less</>
+                  <>
+                    <ChevronUp className="w-3 h-3" />
+                    {t("pages:product.showLess")}
+                  </>
                 ) : (
-                  <><ChevronDown className="w-3 h-3" />Read more</>
+                  <>
+                    <ChevronDown className="w-3 h-3" />
+                    {t("pages:product.readMore")}
+                  </>
                 )}
               </button>
             )}

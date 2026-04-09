@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { ArrowLeft, Plus, CheckCircle2, Clock, XCircle, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ const getStatusBadge = (status: string) => {
 };
 
 const PayoutAccounts = () => {
+  const { t } = useTranslation("pages");
   const { toast } = useToast();
   const [addOpen, setAddOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("esewa");
@@ -138,7 +140,7 @@ const PayoutAccounts = () => {
           <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h1 className="text-lg font-semibold">Payout Accounts</h1>
+          <h1 className="text-lg font-semibold">{t("misc.payout.title")}</h1>
         </div>
         <Button size="sm" className="gap-1" onClick={openAdd}>
           <Plus className="w-4 h-4" /> Add

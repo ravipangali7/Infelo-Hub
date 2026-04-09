@@ -1,0 +1,15 @@
+export default {
+  title: "Cart",
+  titleWithCount: "Cart ({{count}})",
+  emptyTitle: "Your cart is empty",
+  emptyHint: "Add some products to get started.",
+  browseProducts: "Browse Products",
+  each: "रु {{price}} each",
+  maxStock: "Max {{stock}} in stock",
+  maxStockCart: " (cart at max)",
+  ariaMaxQty: "Maximum quantity reached",
+  ariaIncreaseQty: "Increase quantity",
+  subtotal: "Subtotal",
+  continueShopping: "Continue Shopping",
+  proceedCheckout: "Proceed to Checkout",
+} as const;

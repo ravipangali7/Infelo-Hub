@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import {
   ArrowLeft,
@@ -143,6 +144,7 @@ function LearnCategorySection({ category, products }: { category: ProductCategor
 }
 
 const LearnToEarn = () => {
+  const { t } = useTranslation("pages");
   const { data: sectionsPayload, isLoading: sectionsLoading } = useProductSections({
     mode: "direct",
     perSection: 8,
@@ -161,7 +163,7 @@ const LearnToEarn = () => {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-lg font-bold font-display">Learn to Earn</h1>
+          <h1 className="text-lg font-bold font-display">{t("misc.learn.title")}</h1>
           <p className="text-xs text-muted-foreground">3 ways to grow your earnings</p>
         </div>
       </header>
