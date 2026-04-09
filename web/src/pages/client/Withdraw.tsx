@@ -48,7 +48,12 @@ const Withdraw = () => {
   const fee = feePct ? (Number(amount) * feePct) / 100 : feeFlat;
   const netAmount = Number(amount) - fee;
 
-  const payoutAccounts = accountsData?.results?.filter((a) => a.status === "approved") ?? [];
+  const allPayoutAccounts = accountsData?.results ?? [];
+  const payoutAccounts = allPayoutAccounts.filter((a) => a.status === "approved");
+  const pendingPayoutAccounts = allPayoutAccounts.filter((a) => a.status === "pending");
+  const rejectedPayoutAccounts = allPayoutAccounts.filter((a) => a.status === "rejected");
+  const hasApprovedPayoutAccount = payoutAccounts.length > 0;
+  const hasPendingPayoutAccount = pendingPayoutAccounts.length > 0;
   const kycCompulsory = limits?.is_kyc_compulsory !== false;
   const kycBlocksWithdraw = kycCompulsory && kycUser?.kyc_status !== "approved";
 
@@ -160,7 +165,20 @@ const Withdraw = () => {
             <DialogHeader className="shrink-0 space-y-1 border-b border-border px-4 pb-3 pt-1 text-left sm:px-6">
               <DialogTitle>Withdraw fund</DialogTitle>
               <DialogDescription>
-                Choose wallet, amount, and payout account. Withdrawals are reviewed before processing.
+                {hasApprovedPayoutAccount ? (
+                  <span className="block">
+                    Choose wallet, amount, and payout account. Withdrawals are reviewed before processing.
+                  </span>
+                ) : (
+                  <>
+                    <span className="block font-medium text-foreground">
+                      Step 1: Add a payout account and wait for approval. Then enter an amount and submit your withdrawal.
+                    </span>
+                    <span className="mt-1 block text-muted-foreground">
+                      You cannot request a withdrawal until at least one account is approved.
+                    </span>
+                  </>
+                )}
               </DialogDescription>
             </DialogHeader>
             <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-4 py-4 sm:px-6 sm:py-5">
@@ -210,19 +228,51 @@ const Withdraw = () => {
             />
           </div>
           <p className="text-xs text-muted-foreground mt-2">Available: रु {balance.toLocaleString()}</p>
+          {!hasApprovedPayoutAccount && (
+            <p className="text-xs text-amber-700 dark:text-amber-500/90 mt-2">
+              After a payout account is approved, you can enter an amount and complete your withdrawal here.
+            </p>
+          )}
         </div>
 
         <div className="floating-card p-4">
-          <div className="flex items-center justify-between mb-3">
-            <Label className="text-sm font-medium">Select Payout Account</Label>
-            <Link to="/payout-accounts" className="text-xs text-primary font-medium flex items-center gap-1">
-              <Plus className="w-3 h-3" /> Add New
-            </Link>
-          </div>
+          <Label className="text-sm font-medium mb-3 block">Payout account</Label>
           <div className="space-y-3">
-            {payoutAccounts.length === 0 && (
+            {rejectedPayoutAccounts.length > 0 && !hasApprovedPayoutAccount && (
               <p className="text-sm text-muted-foreground">
-                No approved payout account found. Please add and wait for approval before withdrawing.
+                A previous payout account was not approved. Add a new one from payout accounts to continue.
+              </p>
+            )}
+            {!hasApprovedPayoutAccount && hasPendingPayoutAccount && (
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  These accounts are waiting for admin approval. You can withdraw as soon as one is approved.
+                </p>
+                {pendingPayoutAccounts.map((account) => (
+                  <div
+                    key={account.id}
+                    className="flex items-center gap-4 p-4 rounded-xl border border-border bg-muted/30"
+                  >
+                    <PaymentMethodLogo method={account.payment_method} decorative imgClassName="h-9 w-8" />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium capitalize truncate">
+                        {account.payment_method_display || account.payment_method}
+                      </p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {account.phone || account.bank_account_no || "—"}
+                      </p>
+                    </div>
+                    <Badge variant="outline" className="shrink-0 text-[10px]">
+                      Pending approval
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            )}
+            {!hasApprovedPayoutAccount && !hasPendingPayoutAccount && (
+              <p className="text-sm text-muted-foreground">
+                You need an approved payout account before you can withdraw. Add your bank or wallet details, then wait for
+                approval. Use the button at the bottom to go to payout accounts.
               </p>
             )}
             {payoutAccounts.map((account) => (
@@ -248,6 +298,14 @@ const Withdraw = () => {
                 </div>
               </button>
             ))}
+            {hasApprovedPayoutAccount && (
+              <Button variant="outline" className="w-full h-10" asChild>
+                <Link to="/payout-accounts" onClick={() => setShowForm(false)}>
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add or manage payout accounts
+                </Link>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -278,21 +336,44 @@ const Withdraw = () => {
             {(createRequest.error as ApiError).detail ?? "Failed to submit withdrawal request."}
           </p>
         )}
-        <Button
-          className="w-full h-12"
-          disabled={
-            !amount ||
-            Number(amount) <= 0 ||
-            !selectedAccount ||
-            withdrawalDisabled ||
-            kycBlocksWithdraw ||
-            Number(amount) > balance ||
-            createRequest.isPending
-          }
-          onClick={handleSubmit}
-        >
-          {createRequest.isPending ? "Submitting…" : "Request Withdrawal"}
-        </Button>
+        {hasApprovedPayoutAccount ? (
+          <Button
+            className="w-full h-12"
+            disabled={
+              !amount ||
+              Number(amount) <= 0 ||
+              !selectedAccount ||
+              withdrawalDisabled ||
+              kycBlocksWithdraw ||
+              Number(amount) > balance ||
+              createRequest.isPending
+            }
+            onClick={handleSubmit}
+          >
+            {createRequest.isPending ? "Submitting…" : "Request withdrawal"}
+          </Button>
+        ) : hasPendingPayoutAccount ? (
+          <div className="space-y-2">
+            <Button type="button" className="w-full h-12" disabled variant="secondary">
+              Waiting for payout account approval
+            </Button>
+            <p className="text-center text-xs text-muted-foreground">
+              Withdrawal is unavailable until an account is approved. This is usually reviewed within 24–48 hours.
+            </p>
+            <Button variant="outline" className="w-full h-11" asChild>
+              <Link to="/payout-accounts" onClick={() => setShowForm(false)}>
+                View payout accounts
+              </Link>
+            </Button>
+          </div>
+        ) : (
+          <Button className="w-full h-12" asChild>
+            <Link to="/payout-accounts" onClick={() => setShowForm(false)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add payout account to continue
+            </Link>
+          </Button>
+        )}
             </div>
           </DialogContent>
         </Dialog>
