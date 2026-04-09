@@ -34,10 +34,8 @@ import { useCart } from "@/contexts/CartContext";
 import type { Product, ProductCategory } from "@/api/types";
 import { getToken } from "@/api/client";
 import { ClientBannerCarousel } from "@/components/ClientBannerCarousel";
-
-function isInfeloHubFlutterEmbedded(): boolean {
-  return typeof window !== "undefined" && Boolean(window.__infeloHubFlutterClient);
-}
+import { MobileLanguageToggleButton } from "@/components/MobileLanguageToggleButton";
+import { useAndroidApkBannerVisible } from "@/hooks/useAndroidApkBannerVisible";
 
 function formatTime(iso: string, t: (k: string) => string) {
   const d = new Date(iso);
@@ -147,7 +145,7 @@ const Home = () => {
   const { data: appVersion } = usePublicAppVersion();
   const sectionRows = sectionsPayload?.sections ?? [];
   const androidApkUrl = (appVersion?.android_file_url ?? "").trim();
-  const showAndroidDownload = !isInfeloHubFlutterEmbedded() && androidApkUrl.length > 0;
+  const showAndroidDownload = useAndroidApkBannerVisible(androidApkUrl);
 
   const features = useMemo(
     () => [
@@ -233,10 +231,11 @@ const Home = () => {
       </Helmet>
       <header className="client-page-container client-page-content pt-6 pb-4 flex items-center justify-between">
         <img src={logo} alt={brand} className="h-10 w-auto" />
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <span className="text-sm font-medium text-muted-foreground">
             {isLoggedIn ? t("pages:home.welcomeBack") : t("pages:home.welcome")}
           </span>
+          <MobileLanguageToggleButton />
           {isLoggedIn && (
             <Link
               to="/notifications"
@@ -267,7 +266,7 @@ const Home = () => {
 
       <div className="client-page-container client-page-content space-y-6 pb-8">
         {showAndroidDownload && (
-          <div className="flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 sm:px-4">
+          <div className="lg:hidden flex flex-wrap items-center gap-3 rounded-xl border border-border/60 bg-muted/30 px-3 py-2.5 sm:px-4">
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <Smartphone className="h-4 w-4" aria-hidden />
             </div>

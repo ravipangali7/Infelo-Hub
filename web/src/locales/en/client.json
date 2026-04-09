@@ -24,6 +24,7 @@
   "adminPanel": "Admin panel",
   "notifications": "Notifications",
   "language": "Language",
+  "toggleLanguage": "Switch language",
   "langEn": "English",
   "langNe": "नेपाली",
   "staffToastTitle": "Admin access required",
