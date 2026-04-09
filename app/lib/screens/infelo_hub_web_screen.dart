@@ -55,6 +55,32 @@ bool _isWhatsAppLaunchUri(Uri uri) {
   return false;
 }
 
+/// URLs that must not be treated as in-app history (bootstrap / empty documents).
+bool _isJunkWebHistoryUrl(WebUri? uri) {
+  if (uri == null) return true;
+  final s = uri.toString().trim().toLowerCase();
+  if (s.isEmpty) return true;
+  if (s == 'about:blank' || s.startsWith('about:blank#')) return true;
+  if (s == 'about:srcdoc') return true;
+  if (s == 'data:,' || s == 'data:text/html,') return true;
+  return false;
+}
+
+/// True if the immediate back navigation would land on a junk entry (e.g. initial `about:blank`).
+Future<bool> _webViewBackTargetIsJunk(InAppWebViewController controller) async {
+  try {
+    final hist = await controller.getCopyBackForwardList();
+    final list = hist?.list;
+    final cur = hist?.currentIndex;
+    if (list == null || cur == null || cur <= 0) return false;
+    final prev = list[cur - 1];
+    return _isJunkWebHistoryUrl(prev.url) ||
+        _isJunkWebHistoryUrl(prev.originalUrl);
+  } catch (_) {
+    return false;
+  }
+}
+
 Future<void> _openWhatsAppExternally(Uri uri) async {
   const mode = LaunchMode.externalApplication;
   if (await canLaunchUrl(uri)) {
@@ -208,8 +234,10 @@ class _InfeloHubWebScreenState extends State<InfeloHubWebScreen>
 
     final controller = _webController;
     if (controller != null && await controller.canGoBack()) {
-      await controller.goBack();
-      return;
+      if (!await _webViewBackTargetIsJunk(controller)) {
+        await controller.goBack();
+        return;
+      }
     }
 
     if (!mounted) return;

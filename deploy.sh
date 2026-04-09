@@ -9,6 +9,19 @@ cd /home/infelogr/domains/Infelo-Hub
 git pull origin main
 
 # =====================
+# FRONTEND BUILD
+# =====================
+echo "🌐 Frontend build..."
+
+cd /home/infelogr/domains/Infelo-Hub/web
+
+# Activate Node environment
+source /home/infelogr/nodevenv/domains/app.infelogroup.com/10/bin/activate
+
+# Install & build
+npm run build
+
+# =====================
 # BACKEND (DJANGO)
 # =====================
 echo "🐍 Backend setup..."
@@ -27,9 +40,5 @@ echo "🔄 Restarting Python app..."
 
 touch /home/infelogr/domains/Infelo-Hub/server/tmp/restart.txt
 
-
-# Activate Node.js environment
-source /home/infelogr/nodevenv/domains/app.infelogroup.com/10/bin/activate
-npm run build
 
 echo "✅ Deployment finished!"
