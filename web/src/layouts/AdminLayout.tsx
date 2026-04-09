@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Outlet, Link, useLocation, useNavigate, Navigate } from "react-router-dom";
 import { getToken, clearToken, getUser, setUser } from "@/api/client";
 import { getMe } from "@/api/endpoints";
@@ -41,6 +41,7 @@ import {
   Bell,
   Inbox,
   MessageSquare,
+  Search,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import logo from "@/assets/logoT.png";
@@ -51,6 +52,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type MenuItem = {
   path: string;
@@ -189,7 +191,24 @@ function AdminLayoutInner() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState<string[]>(menuGroups.map(g => g.label));
+  const [menuSearch, setMenuSearch] = useState("");
   const [pendingModalOpen, setPendingModalOpen] = useState(false);
+
+  const filteredMenuGroups = useMemo(() => {
+    const q = menuSearch.trim().toLowerCase();
+    if (!q) return menuGroups;
+    return menuGroups
+      .map((group) => {
+        const groupMatch = group.label.toLowerCase().includes(q);
+        const items = groupMatch
+          ? group.items
+          : group.items.filter((item) => item.label.toLowerCase().includes(q));
+        return { ...group, items };
+      })
+      .filter((g) => g.items.length > 0);
+  }, [menuSearch]);
+
+  const searchActive = menuSearch.trim().length > 0;
 
   // Activity tracking for admin panel
   useActivityTracker({ platform: "admin" });
@@ -234,91 +253,128 @@ function AdminLayoutInner() {
     );
   };
 
-  const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+  const SidebarContent = ({ showSearch = true }: { showSearch?: boolean }) => (
+    <div className="flex h-full min-h-0 flex-col">
       {/* Logo */}
-      <div className="p-4 border-b border-sidebar-border">
-        <Link to="/system" className="flex items-center gap-3">
+      <div className="shrink-0 border-b border-sidebar-border p-4">
+        <Link to="/system" className="flex items-center gap-3" onClick={() => setMobileMenuOpen(false)}>
           <img src={logo} alt="Infelo Hub" className="h-8 w-auto" />
         </Link>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-3 space-y-1">
-        {menuGroups.map((group) => (
-          <div key={group.label} className="mb-2">
-            <button
-              onClick={() => toggleGroup(group.label)}
-              className="flex items-center justify-between w-full px-3 py-2 text-xs uppercase tracking-wider text-sidebar-foreground/60 hover:text-sidebar-foreground transition-colors"
-            >
-              {group.label}
-              <ChevronDown className={cn(
-                "w-4 h-4 transition-transform",
-                expandedGroups.includes(group.label) && "rotate-180"
-              )} />
-            </button>
-            {expandedGroups.includes(group.label) && (
-              <div className="mt-1 space-y-1">
-                {group.items.map((item) => {
-                  const Icon = item.icon;
-                  const active = isActive(item.path, item.exact);
-                  const badgeCount = item.badgeKey ? counts[item.badgeKey] : 0;
-                  return (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn(
-                        "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
-                        active
-                          ? "bg-sidebar-primary text-sidebar-primary-foreground"
-                          : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-                      )}
-                    >
-                      <Icon className="w-4 h-4 shrink-0" />
-                      <span className="flex-1">{item.label}</span>
-                      {badgeCount > 0 && (
-                        <Badge
-                          variant="destructive"
-                          className="text-[10px] px-1.5 py-0 h-4 min-w-[1rem] flex items-center justify-center shrink-0"
-                        >
-                          {badgeCount > 99 ? "99+" : badgeCount}
-                        </Badge>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
+      {showSearch ? (
+        <div className="shrink-0 border-b border-sidebar-border px-3 py-2">
+          <div className="relative">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-sidebar-foreground/50" />
+            <Input
+              type="search"
+              value={menuSearch}
+              onChange={(e) => setMenuSearch(e.target.value)}
+              placeholder="Search menu…"
+              className="h-9 border-sidebar-border bg-sidebar-accent/30 pl-9 text-sidebar-foreground placeholder:text-sidebar-foreground/45 focus-visible:ring-sidebar-ring"
+              aria-label="Search navigation"
+            />
           </div>
-        ))}
+        </div>
+      ) : null}
+
+      {/* Navigation — scrolls inside sidebar only */}
+      <nav className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3 space-y-1">
+        {filteredMenuGroups.length === 0 ? (
+          <p className="px-3 py-2 text-xs text-sidebar-foreground/60">No matching menu items.</p>
+        ) : (
+          filteredMenuGroups.map((group) => {
+            const groupExpanded = searchActive || expandedGroups.includes(group.label);
+            return (
+              <div key={group.label} className="mb-2">
+                <button
+                  type="button"
+                  onClick={() => !searchActive && toggleGroup(group.label)}
+                  disabled={searchActive}
+                  className={cn(
+                    "flex w-full items-center justify-between px-3 py-2 text-xs uppercase tracking-wider text-sidebar-foreground/60 transition-colors",
+                    searchActive ? "cursor-default opacity-90" : "hover:text-sidebar-foreground"
+                  )}
+                >
+                  {group.label}
+                  <ChevronDown
+                    className={cn(
+                      "h-4 w-4 shrink-0 transition-transform",
+                      groupExpanded && "rotate-180"
+                    )}
+                  />
+                </button>
+                {groupExpanded ? (
+                  <div className="mt-1 space-y-1">
+                    {group.items.map((item) => {
+                      const Icon = item.icon;
+                      const active = isActive(item.path, item.exact);
+                      const badgeCount = item.badgeKey ? counts[item.badgeKey] : 0;
+                      return (
+                        <Link
+                          key={item.path}
+                          to={item.path}
+                          onClick={() => setMobileMenuOpen(false)}
+                          className={cn(
+                            "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-all",
+                            active
+                              ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                              : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+                          )}
+                        >
+                          <Icon className="h-4 w-4 shrink-0" />
+                          <span className="flex-1">{item.label}</span>
+                          {badgeCount > 0 && (
+                            <Badge
+                              variant="destructive"
+                              className="flex h-4 min-w-[1rem] items-center justify-center px-1.5 py-0 text-[10px] shrink-0"
+                            >
+                              {badgeCount > 99 ? "99+" : badgeCount}
+                            </Badge>
+                          )}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                ) : null}
+              </div>
+            );
+          })
+        )}
       </nav>
     </div>
   );
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="flex min-h-screen bg-background lg:h-svh lg:max-h-svh lg:overflow-hidden">
       <SiteAnalyticsScripts html={siteSettings?.google_analytics_script} />
-      {/* Desktop Sidebar */}
-      <aside className={cn(
-        "hidden lg:flex flex-col admin-sidebar text-white transition-all duration-300",
-        sidebarOpen ? "w-64" : "w-20"
-      )}>
-        <SidebarContent />
+      {/* Desktop Sidebar — fixed; nav scrolls inside */}
+      <aside
+        className={cn(
+          "admin-sidebar fixed left-0 top-0 z-40 hidden h-svh flex-col overflow-hidden text-white transition-[width] duration-300 lg:flex",
+          sidebarOpen ? "w-64" : "w-20"
+        )}
+      >
+        <SidebarContent showSearch={sidebarOpen} />
       </aside>
 
       {/* Mobile Menu Overlay */}
       {mobileMenuOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
           <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-          <aside className="absolute left-0 top-0 bottom-0 w-64 admin-sidebar text-white">
-            <SidebarContent />
+          <aside className="absolute bottom-0 left-0 top-0 flex w-64 flex-col overflow-hidden admin-sidebar text-white">
+            <SidebarContent showSearch />
           </aside>
         </div>
       )}
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col min-h-screen">
+      <div
+        className={cn(
+          "flex min-h-screen min-w-0 flex-1 flex-col transition-[padding] duration-300 lg:min-h-0 lg:h-full",
+          sidebarOpen ? "lg:pl-64" : "lg:pl-20"
+        )}
+      >
         {/* Top Bar */}
         <header className="h-14 md:h-16 border-b border-border bg-card flex items-center px-3 md:px-4 lg:px-6 gap-2 md:gap-4">
           <button
@@ -375,7 +431,7 @@ function AdminLayoutInner() {
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-3 md:p-4 lg:p-6 overflow-auto text-sm md:text-base">
+        <main className="min-h-0 flex-1 overflow-auto p-3 text-sm md:p-4 md:text-base lg:p-6">
           <Outlet />
         </main>
       </div>
