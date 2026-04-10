@@ -5,6 +5,7 @@ export default {
   },
   learn: {
     title: "Learn to Earn",
+    defaultSeoDescription: "Learn how to earn with buy rewards, affiliates, and campaigns on Infelo Hub.",
   },
   wishlist: {
     title: "Wishlist",

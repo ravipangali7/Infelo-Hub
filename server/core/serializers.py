@@ -439,6 +439,7 @@ class SalesSerializer(serializers.ModelSerializer):
 
 class CampaignSerializer(serializers.ModelSerializer):
     image_url = serializers.SerializerMethodField()
+    og_share_image_url = serializers.SerializerMethodField()
     product_name = serializers.CharField(source='product.name', read_only=True, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     product = NullablePrimaryKeyRelatedField(queryset=Product.objects.all(), allow_null=True, required=False)
@@ -447,6 +448,7 @@ class CampaignSerializer(serializers.ModelSerializer):
         model = Campaign
         fields = [
             'id', 'name', 'status', 'status_display', 'description', 'image', 'image_url',
+            'og_share_title', 'og_share_description', 'og_share_image', 'og_share_image_url',
             'video_link', 'commission_type', 'commission', 'product', 'product_name',
             'created_at', 'updated_at',
         ]
@@ -456,6 +458,12 @@ class CampaignSerializer(serializers.ModelSerializer):
             return None
         request = self.context.get('request')
         return build_absolute_uri(request, obj.image.url)
+
+    def get_og_share_image_url(self, obj):
+        if not obj.og_share_image:
+            return None
+        request = self.context.get('request')
+        return build_absolute_uri(request, obj.og_share_image.url)
 
 
 class CampaignSubmissionProofSerializer(serializers.ModelSerializer):
@@ -768,18 +776,52 @@ class ClientPushNotificationInboxSerializer(serializers.ModelSerializer):
 
 class SiteSettingSerializer(serializers.ModelSerializer):
     logo_url = serializers.SerializerMethodField()
+    seo_home_og_image_url = serializers.SerializerMethodField()
+    seo_shop_og_image_url = serializers.SerializerMethodField()
+    seo_campaigns_list_og_image_url = serializers.SerializerMethodField()
+    seo_learn_og_image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = SiteSetting
-        fields = ['id', 'name', 'logo', 'logo_url', 'title', 'subtitle', 'phone', 'whatsapp',
-                  'email', 'facebook', 'instagram', 'tiktok', 'youtube', 'google_analytics_script',
-                  'created_at', 'updated_at']
+        fields = [
+            'id', 'name', 'logo', 'logo_url', 'title', 'subtitle',
+            'seo_home_meta_title', 'seo_home_meta_description', 'seo_home_meta_keywords',
+            'seo_home_og_image', 'seo_home_og_image_url',
+            'seo_shop_meta_title', 'seo_shop_meta_description', 'seo_shop_meta_keywords',
+            'seo_shop_og_image', 'seo_shop_og_image_url',
+            'seo_campaigns_list_meta_title', 'seo_campaigns_list_meta_description',
+            'seo_campaigns_list_meta_keywords', 'seo_campaigns_list_og_image',
+            'seo_campaigns_list_og_image_url',
+            'seo_learn_meta_title', 'seo_learn_meta_description', 'seo_learn_meta_keywords',
+            'seo_learn_og_image', 'seo_learn_og_image_url',
+            'phone', 'whatsapp', 'email', 'facebook', 'instagram', 'tiktok', 'youtube',
+            'google_analytics_script', 'created_at', 'updated_at',
+        ]
 
     def get_logo_url(self, obj):
         request = self.context.get('request')
         if obj.logo:
             return build_absolute_uri(request, obj.logo.url)
         return None
+
+    def _seo_og_url(self, obj, attr):
+        request = self.context.get('request')
+        field = getattr(obj, attr, None)
+        if field:
+            return build_absolute_uri(request, field.url)
+        return None
+
+    def get_seo_home_og_image_url(self, obj):
+        return self._seo_og_url(obj, 'seo_home_og_image')
+
+    def get_seo_shop_og_image_url(self, obj):
+        return self._seo_og_url(obj, 'seo_shop_og_image')
+
+    def get_seo_campaigns_list_og_image_url(self, obj):
+        return self._seo_og_url(obj, 'seo_campaigns_list_og_image')
+
+    def get_seo_learn_og_image_url(self, obj):
+        return self._seo_og_url(obj, 'seo_learn_og_image')
 
 
 class CmsPageSerializer(serializers.ModelSerializer):

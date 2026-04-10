@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { RouteSeo } from "@/components/RouteSeo";
+import { absoluteUrl } from "@/lib/seo";
 import { useTranslation } from "react-i18next";
 import {
   Receipt,
@@ -198,11 +199,20 @@ const Home = () => {
   const banners = homeConfig?.banners ?? [];
   const isPublicLoading = sectionsLoading || campaignsLoading;
   const featuredLoading = isLoggedIn ? isLoading : sectionsLoading;
-  const homeTitle = siteSettings?.title?.trim() || t("pages:home.defaultTitle");
-  const homeDescription = siteSettings?.subtitle?.trim() || t("pages:home.defaultDescription");
-  const homeImage = siteSettings?.logo_url || `${window.location.origin}${logo.startsWith("/") ? "" : "/"}${logo}`;
-  const homeUrl = window.location.origin;
   const brand = t("client:brand");
+  const homeTitle =
+    siteSettings?.seo_home_meta_title?.trim() ||
+    siteSettings?.title?.trim() ||
+    t("pages:home.defaultTitle");
+  const homeDescription =
+    siteSettings?.seo_home_meta_description?.trim() ||
+    siteSettings?.subtitle?.trim() ||
+    t("pages:home.defaultDescription");
+  const homeKeywords = siteSettings?.seo_home_meta_keywords?.trim() || null;
+  const homeImage =
+    siteSettings?.seo_home_og_image_url?.trim() ||
+    siteSettings?.logo_url ||
+    absoluteUrl("/og-image.png");
 
   if (error && isLoggedIn) {
     return (
@@ -214,21 +224,14 @@ const Home = () => {
 
   return (
     <div className="min-h-screen">
-      <Helmet>
-        <title>{homeTitle}</title>
-        <meta name="description" content={homeDescription} />
-        <meta property="og:type" content="website" />
-        <meta property="og:site_name" content={brand} />
-        <meta property="og:title" content={homeTitle} />
-        <meta property="og:description" content={homeDescription} />
-        <meta property="og:url" content={homeUrl} />
-        <meta property="og:image" content={homeImage} />
-        <meta property="og:image:secure_url" content={homeImage} />
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={homeTitle} />
-        <meta name="twitter:description" content={homeDescription} />
-        <meta name="twitter:image" content={homeImage} />
-      </Helmet>
+      <RouteSeo
+        title={homeTitle}
+        description={homeDescription}
+        keywords={homeKeywords}
+        imageUrl={homeImage}
+        canonicalPath="/"
+        siteName={brand}
+      />
       <header className="client-page-container client-page-content pt-6 pb-4 flex items-center justify-between">
         <img src={logo} alt={brand} className="h-10 w-auto" />
         <div className="flex items-center gap-2 sm:gap-3">

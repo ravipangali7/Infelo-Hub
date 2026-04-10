@@ -440,6 +440,21 @@ class Campaign(models.Model):
     status = models.CharField(max_length=20, choices=CampaignStatus.choices, default=CampaignStatus.COMING)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='campaigns/', blank=True, null=True)
+    og_share_title = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='Optional. Social preview title when sharing this campaign.',
+    )
+    og_share_description = models.TextField(
+        blank=True,
+        help_text='Optional. Social preview description when sharing this campaign.',
+    )
+    og_share_image = models.ImageField(
+        upload_to='campaigns/og/',
+        blank=True,
+        null=True,
+        help_text='Optional. Overrides main campaign image for Open Graph / link previews.',
+    )
     video_link = models.URLField(blank=True)
     commission_type = models.CharField(max_length=20, choices=CommissionType.choices, blank=True)
     commission = models.DecimalField(max_digits=12, decimal_places=2, default=0)
@@ -695,6 +710,23 @@ class SiteSetting(models.Model):
     logo = models.ImageField(upload_to='site/', blank=True, null=True)
     title = models.CharField(max_length=255, blank=True)
     subtitle = models.CharField(max_length=255, blank=True)
+    # Per-route SEO (optional; falls back to title/subtitle/logo in the client)
+    seo_home_meta_title = models.CharField(max_length=255, blank=True)
+    seo_home_meta_description = models.TextField(blank=True)
+    seo_home_meta_keywords = models.CharField(max_length=512, blank=True)
+    seo_home_og_image = models.ImageField(upload_to='site/seo/', blank=True, null=True)
+    seo_shop_meta_title = models.CharField(max_length=255, blank=True)
+    seo_shop_meta_description = models.TextField(blank=True)
+    seo_shop_meta_keywords = models.CharField(max_length=512, blank=True)
+    seo_shop_og_image = models.ImageField(upload_to='site/seo/', blank=True, null=True)
+    seo_campaigns_list_meta_title = models.CharField(max_length=255, blank=True)
+    seo_campaigns_list_meta_description = models.TextField(blank=True)
+    seo_campaigns_list_meta_keywords = models.CharField(max_length=512, blank=True)
+    seo_campaigns_list_og_image = models.ImageField(upload_to='site/seo/', blank=True, null=True)
+    seo_learn_meta_title = models.CharField(max_length=255, blank=True)
+    seo_learn_meta_description = models.TextField(blank=True)
+    seo_learn_meta_keywords = models.CharField(max_length=512, blank=True)
+    seo_learn_og_image = models.ImageField(upload_to='site/seo/', blank=True, null=True)
     phone = models.CharField(max_length=20, blank=True)
     whatsapp = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
@@ -716,6 +748,30 @@ class SiteSetting(models.Model):
     def logo_url(self):
         if self.logo:
             return self.logo.url
+        return None
+
+    @property
+    def seo_home_og_image_url(self):
+        if self.seo_home_og_image:
+            return self.seo_home_og_image.url
+        return None
+
+    @property
+    def seo_shop_og_image_url(self):
+        if self.seo_shop_og_image:
+            return self.seo_shop_og_image.url
+        return None
+
+    @property
+    def seo_campaigns_list_og_image_url(self):
+        if self.seo_campaigns_list_og_image:
+            return self.seo_campaigns_list_og_image.url
+        return None
+
+    @property
+    def seo_learn_og_image_url(self):
+        if self.seo_learn_og_image:
+            return self.seo_learn_og_image.url
         return None
 
 

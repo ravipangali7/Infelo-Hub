@@ -3,14 +3,17 @@ import { Link, useSearchParams } from "react-router-dom";
 import { ArrowLeft, Gift, Clock, CheckCircle2, XCircle, ChevronRight, Megaphone } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useCampaigns, useSubmissions } from "@/api/hooks";
+import { useCampaigns, usePublicSiteSettings, useSubmissions } from "@/api/hooks";
+import { RouteSeo } from "@/components/RouteSeo";
+import { absoluteUrl } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Campaign } from "@/api/types";
 import { getToken } from "@/api/client";
 
 const MyCampaigns = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const isLoggedIn = !!getToken();
+  const { data: siteSettings } = usePublicSiteSettings();
   const [searchParams, setSearchParams] = useSearchParams();
   const mainTab = isLoggedIn && searchParams.get("tab") === "submissions" ? "submissions" : "browse";
 
@@ -125,6 +128,18 @@ const MyCampaigns = () => {
     </>
   );
 
+  const brand = t("client:brand");
+  const seoTitle =
+    siteSettings?.seo_campaigns_list_meta_title?.trim() ||
+    `${t("campaigns.myCampaignsTitle")} | ${brand}`;
+  const seoDescription =
+    siteSettings?.seo_campaigns_list_meta_description?.trim() || t("campaigns.defaultSeoDescription");
+  const seoKeywords = siteSettings?.seo_campaigns_list_meta_keywords?.trim() || null;
+  const seoImage =
+    siteSettings?.seo_campaigns_list_og_image_url?.trim() ||
+    siteSettings?.logo_url ||
+    absoluteUrl("/og-image.png");
+
   const submissionsSkeleton = (
     <>
       <Skeleton className="h-10 w-full rounded-xl mb-4" />
@@ -135,6 +150,14 @@ const MyCampaigns = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <RouteSeo
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        imageUrl={seoImage}
+        canonicalPath="/campaigns"
+        siteName={brand}
+      />
       <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />

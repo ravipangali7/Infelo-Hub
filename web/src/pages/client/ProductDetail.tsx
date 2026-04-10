@@ -1,5 +1,5 @@
 import { useParams, Link, useNavigate, useSearchParams } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { RouteSeo } from "@/components/RouteSeo";
 import {
   ArrowLeft, Share2, Heart, ShoppingCart, Gift, Minus, Plus,
   Tag, Store, CheckCircle, Package, ChevronDown, ChevronUp, Zap, Download,
@@ -16,6 +16,7 @@ import { getToken } from "@/api/client";
 import { cn } from "@/lib/utils";
 import { parseAffiliateRefParam, storeAffiliateRef } from "@/lib/affiliate";
 import type { Product } from "@/api/types";
+import { absoluteUrl, crawlerShareProductUrl } from "@/lib/seo";
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL ?? "http://localhost:8000/api").replace(/\/api\/?$/, "");
 const toAbsoluteUrl = (value?: string | null) => {
@@ -248,26 +249,21 @@ const ProductDetail = () => {
   const pageDesc =
     product?.short_description || (product ? t("pages:product.buyOnHub", { name: product.name }) : "");
   const pageImage = toAbsoluteUrl(mainImage || product?.image_url || product?.image);
-  const canonicalUrl = slug ? `${window.location.origin}/product/${slug}` : window.location.href;
+  const shareOgUrl = slug ? crawlerShareProductUrl(slug) : "";
 
   return (
     <div className="min-h-screen bg-background">
-      <Helmet>
-        <title>{pageTitle}</title>
-        {pageDesc && <meta name="description" content={pageDesc} />}
-        <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:type" content="product" />
-        <meta property="og:site_name" content={t("client:brand")} />
-        <meta property="og:title" content={pageTitle} />
-        {pageDesc && <meta property="og:description" content={pageDesc} />}
-        <meta property="og:url" content={canonicalUrl} />
-        {pageImage && <meta property="og:image" content={pageImage} />}
-        {pageImage && <meta property="og:image:secure_url" content={pageImage} />}
-        <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={pageTitle} />
-        {pageDesc && <meta name="twitter:description" content={pageDesc} />}
-        {pageImage && <meta name="twitter:image" content={pageImage} />}
-      </Helmet>
+      {product && slug ? (
+        <RouteSeo
+          title={pageTitle}
+          description={pageDesc || t("pages:product.buyOnHub", { name: product.name })}
+          imageUrl={pageImage || absoluteUrl("/og-image.png")}
+          canonicalPath={`/product/${slug}`}
+          siteName={t("client:brand")}
+          ogUrl={shareOgUrl || undefined}
+          ogType="product"
+        />
+      ) : null}
 
       {/* Mobile: transparent / scrolled bar over hero. Desktop: global header only */}
       <header

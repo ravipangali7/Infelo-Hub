@@ -1,4 +1,8 @@
 export default {
+  defaultSeoDescription: "Discover earning campaigns and rewards on Infelo Hub.",
+  defaultCampaignOgDescription: "Join this campaign on Infelo Hub and earn rewards.",
+  copySocialPreviewLink: "Copy social preview link",
+  socialPreviewLinkCopied: "Link copied — paste this URL in social posts for the correct image preview.",
 
   myCampaignsTitle: "Campaigns",
 

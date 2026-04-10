@@ -1,5 +1,6 @@
 export default {
   title: "पसल",
+  defaultSeoDescription: "इन्फेलो हबमा उत्पादनहरू, अफर र पुरस्कार ब्राउज गर्नुहोस्।",
   searchPlaceholder: "उत्पादन खोज्नुहोस्...",
   featuredProducts: "विशेष उत्पादनहरू",
   allProducts: "सबै उत्पादनहरू",

@@ -12,7 +12,9 @@ import {
   CheckCircle,
   Package,
 } from "lucide-react";
-import { useProductSections } from "@/api/hooks";
+import { useProductSections, usePublicSiteSettings } from "@/api/hooks";
+import { RouteSeo } from "@/components/RouteSeo";
+import { absoluteUrl } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Product, ProductCategory } from "@/api/types";
 
@@ -144,16 +146,36 @@ function LearnCategorySection({ category, products }: { category: ProductCategor
 }
 
 const LearnToEarn = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
+  const { data: siteSettings } = usePublicSiteSettings();
   const { data: sectionsPayload, isLoading: sectionsLoading } = useProductSections({
     mode: "direct",
     perSection: 8,
     featuredLimit: 0,
   });
   const sectionRows = sectionsPayload?.sections ?? [];
+  const brand = t("client:brand");
+  const seoTitle =
+    siteSettings?.seo_learn_meta_title?.trim() ||
+    `${t("misc.learn.title")} | ${brand}`;
+  const seoDescription =
+    siteSettings?.seo_learn_meta_description?.trim() || t("misc.learn.defaultSeoDescription");
+  const seoKeywords = siteSettings?.seo_learn_meta_keywords?.trim() || null;
+  const seoImage =
+    siteSettings?.seo_learn_og_image_url?.trim() ||
+    siteSettings?.logo_url ||
+    absoluteUrl("/og-image.png");
 
   return (
     <div className="min-h-screen bg-background">
+      <RouteSeo
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        imageUrl={seoImage}
+        canonicalPath="/learn-to-earn"
+        siteName={brand}
+      />
       {/* Header */}
       <header className="client-page-container client-page-content sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border flex items-center gap-3 py-3">
         <Link

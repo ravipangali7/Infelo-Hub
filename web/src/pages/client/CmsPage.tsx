@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useParams, Link } from "react-router-dom";
-import { Helmet } from "react-helmet-async";
+import { RouteSeo } from "@/components/RouteSeo";
+import { absoluteUrl, plainTextExcerpt } from "@/lib/seo";
 import { ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -38,25 +39,20 @@ const CmsPage = () => {
     );
   }
 
-  const canonicalUrl = `${window.location.origin}/page/${page.slug}`;
+  const cmsTitle = `${page.title} | Infelo Hub`;
+  const cmsDesc = plainTextExcerpt(page.content, 300) || page.title;
+  const cmsImage = page.image_url || absoluteUrl("/og-image.png");
 
   return (
     <>
-      <Helmet>
-        <title>{page.title} | Infelo Hub</title>
-        <meta name="description" content={page.title} />
-        <link rel="canonical" href={canonicalUrl} />
-        <meta property="og:type" content="article" />
-        <meta property="og:site_name" content="Infelo Hub" />
-        <meta property="og:title" content={`${page.title} | Infelo Hub`} />
-        <meta property="og:description" content={page.title} />
-        <meta property="og:url" content={canonicalUrl} />
-        {page.image_url && <meta property="og:image" content={page.image_url} />}
-        <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={`${page.title} | Infelo Hub`} />
-        <meta name="twitter:description" content={page.title} />
-        {page.image_url && <meta name="twitter:image" content={page.image_url} />}
-      </Helmet>
+      <RouteSeo
+        title={cmsTitle}
+        description={cmsDesc}
+        imageUrl={cmsImage}
+        canonicalPath={`/page/${page.slug}`}
+        siteName="Infelo Hub"
+        ogType="article"
+      />
 
       <div className="client-page-container mx-auto w-full max-w-2xl py-6 pb-24">
         {/* Back button */}

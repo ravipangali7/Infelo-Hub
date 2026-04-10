@@ -1,5 +1,6 @@
 export default {
   title: "Shop",
+  defaultSeoDescription: "Browse products, deals, and rewards on Infelo Hub.",
   searchPlaceholder: "Search products...",
   featuredProducts: "Featured Products",
   allProducts: "All Products",

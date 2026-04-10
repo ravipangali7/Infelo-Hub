@@ -1,4 +1,8 @@
 export default {
+  defaultSeoDescription: "इन्फेलो हबमा कमाइ अभियान र पुरस्कार पत्ता लगाउनुहोस्।",
+  defaultCampaignOgDescription: "इन्फेलो हबमा यो अभियानमा सामेल हुनुहोस् र पुरस्कार कमाउनुहोस्।",
+  copySocialPreviewLink: "सामाजिक पूर्वावलोकन लिङ्क प्रतिलिपि गर्नुहोस्",
+  socialPreviewLinkCopied: "लिङ्क प्रतिलिपि भयो — सही छवि पूर्वावलोकनको लागि यो URL सामाजिक पोस्टमा पेस्ट गर्नुहोस्।",
 
   myCampaignsTitle: "अभियानहरू",
 

@@ -20,13 +20,15 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 from core.forms import StaffPhoneAdminAuthenticationForm
-from core.views.website import product_og_views
+from core.views.website import product_og_views, campaign_og_views, sitemap_views
 
 admin.site.login_form = StaffPhoneAdminAuthenticationForm
 
 urlpatterns = [
     path('api/', include('core.urls')),
     path('share/product/<slug:slug>/', product_og_views.product_share_page),
+    path('share/campaign/<int:pk>/', campaign_og_views.campaign_share_page),
+    path('sitemap.xml', sitemap_views.sitemap_xml),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -167,5 +167,8 @@ AUTH_USER_MODEL = 'core.User'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+# Public SPA URL for sitemaps, share previews, and canonical targets in generated XML.
+SPA_BASE_URL = os.environ.get('SPA_BASE_URL', 'https://infelohub.infelogroup.com')
+
 # Firebase Admin (FCM). Set to absolute path of service account JSON, or leave unset to disable sending.
 FIREBASE_CREDENTIALS_PATH = os.environ.get('FIREBASE_CREDENTIALS_PATH', 'firebase-service.json')

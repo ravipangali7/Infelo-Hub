@@ -1,7 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { useState, useCallback, useMemo, useRef } from "react";
-import { ArrowLeft, Clock, Gift, Loader2, Plus, Trash2, Download } from "lucide-react";
+import { ArrowLeft, Clock, Gift, Loader2, Plus, Share2, Trash2, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -20,6 +20,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ApiError } from "@/api/client";
 import { getToken } from "@/api/client";
 import type { CampaignProofInput } from "@/api/types";
+import { RouteSeo } from "@/components/RouteSeo";
+import { absoluteUrl, crawlerShareCampaignUrl, plainTextExcerpt } from "@/lib/seo";
 
 type ImagePick = {
   key: string;
@@ -111,7 +113,7 @@ function CampaignImageDownloadButton({
 }
 
 const CampaignDetail = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -260,6 +262,24 @@ const CampaignDetail = () => {
 
   const imageUrl = campaign.image_url || campaign.image;
   const isActive = campaign.status === "running";
+  const brand = t("client:brand");
+  const seoTitle = `${(campaign.og_share_title || campaign.name).trim()} | ${brand}`;
+  const seoDescription =
+    plainTextExcerpt(campaign.og_share_description || campaign.description || "", 300) ||
+    t("campaigns.defaultCampaignOgDescription");
+  const seoImage =
+    (campaign.og_share_image_url || campaign.image_url || "").trim() || absoluteUrl("/og-image.png");
+  const sharePreviewUrl = crawlerShareCampaignUrl(campaign.id);
+
+  const copySharePreviewLink = async () => {
+    const url = sharePreviewUrl || `${window.location.origin}/campaign/${campaign.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({ title: t("campaigns.socialPreviewLinkCopied") });
+    } catch {
+      toast({ variant: "destructive", title: t("campaigns.couldNotSubmit") });
+    }
+  };
 
   const renderAction = () => {
     if (!isActive) return null;
@@ -435,6 +455,14 @@ const CampaignDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <RouteSeo
+        title={seoTitle}
+        description={seoDescription}
+        imageUrl={seoImage}
+        canonicalPath={`/campaign/${campaign.id}`}
+        siteName={brand}
+        ogUrl={sharePreviewUrl || undefined}
+      />
       <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <Link to="/campaigns" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />
@@ -463,13 +491,23 @@ const CampaignDetail = () => {
             </Badge>
             <h2 className="text-xl font-bold">{campaign.name}</h2>
           </div>
-          {imageUrl && (
-            <CampaignImageDownloadButton
-              url={imageUrl}
-              fileName={campaignImageDownloadName(campaign.name, imageUrl)}
-              className="absolute top-3 right-3 z-10 inline-flex items-center gap-1 rounded-md bg-black/50 px-2 py-1 text-xs text-white hover:bg-black/60 disabled:opacity-60"
-            />
-          )}
+          <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-2">
+            {imageUrl && (
+              <CampaignImageDownloadButton
+                url={imageUrl}
+                fileName={campaignImageDownloadName(campaign.name, imageUrl)}
+                className="inline-flex items-center gap-1 rounded-md bg-black/50 px-2 py-1 text-xs text-white hover:bg-black/60 disabled:opacity-60"
+              />
+            )}
+            <button
+              type="button"
+              onClick={copySharePreviewLink}
+              className="inline-flex items-center gap-1 rounded-md bg-black/50 px-2 py-1 text-xs text-white hover:bg-black/60"
+            >
+              <Share2 className="h-3 w-3 shrink-0" />
+              {t("campaigns.copySocialPreviewLink")}
+            </button>
+          </div>
         </div>
 
         <div className="floating-card p-4 flex items-center gap-4">

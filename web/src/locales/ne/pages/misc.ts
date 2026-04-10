@@ -1,6 +1,9 @@
 export default {
   kyc: { title: "KYC प्रमाणीकरण", loadFailed: "KYC स्थिति लोड गर्न सकिएन।" },
-  learn: { title: "सिकेर कमाउनुहोस्" },
+  learn: {
+    title: "सिकेर कमाउनुहोस्",
+    defaultSeoDescription: "इन्फेलो हबमा किनड, एफिलिएट र अभियानमार्फत कसरी कमाउने भन्ने जान्नुहोस्।",
+  },
   wishlist: {
     title: "इच्छा सूची",
     empty: "इच्छा सूची खाली छ।",

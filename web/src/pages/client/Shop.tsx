@@ -4,16 +4,19 @@ import { useTranslation } from "react-i18next";
 import { Search, Filter, Package, ShoppingCart, Store, ChevronRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useProducts, useCategories, useHomeConfig, useCampaigns, useProductSections } from "@/api/hooks";
+import { useProducts, useCategories, useHomeConfig, useCampaigns, useProductSections, usePublicSiteSettings } from "@/api/hooks";
+import { RouteSeo } from "@/components/RouteSeo";
+import { absoluteUrl } from "@/lib/seo";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCart } from "@/contexts/CartContext";
 import { ClientBannerCarousel } from "@/components/ClientBannerCarousel";
 
 const Shop = () => {
-  const { t } = useTranslation(["pages", "common"]);
+  const { t } = useTranslation(["pages", "common", "client"]);
   const [searchQuery, setSearchQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | undefined>();
   const { itemCount } = useCart();
+  const { data: siteSettings } = usePublicSiteSettings();
 
   const { data: homeConfig } = useHomeConfig();
   const banners = homeConfig?.banners ?? [];
@@ -47,8 +50,28 @@ const Shop = () => {
   const badgeAff = (affReward: number, isPercent: boolean) =>
     isPercent ? t("pages:home.badgeAffPercent", { pct: affReward }) : t("pages:home.badgeAffFixed", { amt: affReward });
 
+  const brand = t("client:brand");
+  const seoTitle =
+    siteSettings?.seo_shop_meta_title?.trim() ||
+    `${t("pages:shop.title")} | ${brand}`;
+  const seoDescription =
+    siteSettings?.seo_shop_meta_description?.trim() || t("pages:shop.defaultSeoDescription");
+  const seoKeywords = siteSettings?.seo_shop_meta_keywords?.trim() || null;
+  const seoImage =
+    siteSettings?.seo_shop_og_image_url?.trim() ||
+    siteSettings?.logo_url ||
+    absoluteUrl("/og-image.png");
+
   return (
     <div className="min-h-screen">
+      <RouteSeo
+        title={seoTitle}
+        description={seoDescription}
+        keywords={seoKeywords}
+        imageUrl={seoImage}
+        canonicalPath="/shop"
+        siteName={brand}
+      />
       <header className="client-page-container sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <div className="client-page-content pt-6 pb-4">
           <div className="flex items-center justify-between mb-4">

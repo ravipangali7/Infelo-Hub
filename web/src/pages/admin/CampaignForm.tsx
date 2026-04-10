@@ -42,6 +42,7 @@ export default function CampaignForm() {
   const [status, setStatus] = useState<CampaignStatus>("coming");
   const [productId, setProductId] = useState<string>("");
   const [imageFile, setImageFile] = useState<File | null>(null);
+  const [ogShareImageFile, setOgShareImageFile] = useState<File | null>(null);
 
   useEffect(() => {
     if (c) {
@@ -77,16 +78,22 @@ export default function CampaignForm() {
       toast({ variant: "destructive", title: "Name required" });
       return;
     }
-    if (imageFile) {
+    const ogTitle = ((fd.get("og_share_title") as string) || "").trim();
+    const ogDesc = ((fd.get("og_share_description") as string) || "").trim();
+
+    if (imageFile || ogShareImageFile) {
       const form = new FormData();
       form.append("name", name);
       form.append("status", status);
       form.append("description", (fd.get("description") as string) || "");
+      form.append("og_share_title", ogTitle);
+      form.append("og_share_description", ogDesc);
       form.append("video_link", (fd.get("video_link") as string) || "");
       form.append("commission_type", (fd.get("commission_type") as string) || "flat");
       form.append("commission", (fd.get("commission") as string) || "0");
       form.append("product", productId || "");
-      form.append("image", imageFile);
+      if (imageFile) form.append("image", imageFile);
+      if (ogShareImageFile) form.append("og_share_image", ogShareImageFile);
       if (isNew) createMut.mutate(form);
       else if (cid) updateMut.mutate({ pk: cid, body: form });
       return;
@@ -96,6 +103,8 @@ export default function CampaignForm() {
       name,
       status,
       description: (fd.get("description") as string) || "",
+      og_share_title: ogTitle,
+      og_share_description: ogDesc,
       video_link: (fd.get("video_link") as string) || "",
       commission_type: (fd.get("commission_type") as string) || "flat",
       commission: (fd.get("commission") as string) || "0",
@@ -173,6 +182,25 @@ export default function CampaignForm() {
               <Input id="video_link" name="video_link" defaultValue={c?.video_link} />
             </div>
             <ImageFileField label="Image" currentUrl={c?.image_url} onFileChange={setImageFile} />
+            <div className="space-y-2 pt-2 border-t">
+              <p className="text-sm font-medium">Social share (Open Graph)</p>
+              <p className="text-xs text-muted-foreground">
+                Optional. When empty, the campaign name, description, and main image are used. Share links that need a crawler-friendly preview should use the “social preview” URL from the public campaign page.
+              </p>
+              <div className="space-y-2">
+                <Label htmlFor="og_share_title">Share title</Label>
+                <Input id="og_share_title" name="og_share_title" defaultValue={c?.og_share_title} placeholder="Override title in link previews" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="og_share_description">Share description</Label>
+                <Textarea id="og_share_description" name="og_share_description" rows={2} defaultValue={c?.og_share_description} />
+              </div>
+              <ImageFileField
+                label="Share image (optional)"
+                currentUrl={ogShareImageFile ? undefined : c?.og_share_image_url}
+                onFileChange={setOgShareImageFile}
+              />
+            </div>
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="commission_type">Commission type</Label>
