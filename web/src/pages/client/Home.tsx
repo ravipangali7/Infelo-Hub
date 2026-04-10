@@ -37,6 +37,9 @@ import { ClientBannerCarousel } from "@/components/ClientBannerCarousel";
 import { MobileLanguageToggleButton } from "@/components/MobileLanguageToggleButton";
 import { useAndroidApkBannerVisible } from "@/hooks/useAndroidApkBannerVisible";
 
+const siteOrigin =
+  (import.meta.env.VITE_SITE_ORIGIN ?? "").replace(/\/$/, "") || window.location.origin;
+
 function formatTime(iso: string, t: (k: string) => string) {
   const d = new Date(iso);
   const now = new Date();
@@ -200,8 +203,8 @@ const Home = () => {
   const featuredLoading = isLoggedIn ? isLoading : sectionsLoading;
   const homeTitle = siteSettings?.title?.trim() || t("pages:home.defaultTitle");
   const homeDescription = siteSettings?.subtitle?.trim() || t("pages:home.defaultDescription");
-  const homeImage = siteSettings?.logo_url || `${window.location.origin}${logo.startsWith("/") ? "" : "/"}${logo}`;
-  const homeUrl = window.location.origin;
+  const homeImage = siteSettings?.logo_url || `${siteOrigin}/og-image.png`;
+  const homeUrl = siteOrigin;
   const brand = t("client:brand");
 
   if (error && isLoggedIn) {
@@ -224,10 +227,12 @@ const Home = () => {
         <meta property="og:url" content={homeUrl} />
         <meta property="og:image" content={homeImage} />
         <meta property="og:image:secure_url" content={homeImage} />
+        <meta property="og:image:alt" content={brand} />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content={homeTitle} />
         <meta name="twitter:description" content={homeDescription} />
         <meta name="twitter:image" content={homeImage} />
+        <meta name="twitter:image:alt" content={brand} />
       </Helmet>
       <header className="client-page-container client-page-content pt-6 pb-4 flex items-center justify-between">
         <img src={logo} alt={brand} className="h-10 w-auto" />
