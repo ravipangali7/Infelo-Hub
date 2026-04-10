@@ -5,9 +5,10 @@ import { useWishlist, useRemoveFromWishlist } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const Wishlist = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const { data: wishlistItems, isLoading } = useWishlist();
   const removeFromWishlist = useRemoveFromWishlist();
 
@@ -20,6 +21,12 @@ const Wishlist = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("misc.wishlist.title")} | ${t("client:brand")}`}
+        description={t("misc.wishlist.emptySubtitle")}
+        canonicalPath="/wishlist"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content sticky top-0 z-40 bg-background/80 backdrop-blur-xl border-b border-border flex items-center gap-3 py-3">
         <Link
           to="/profile"

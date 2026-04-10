@@ -8,6 +8,7 @@ import { registerRequestOtp, registerVerifyOtp, registerComplete } from "@/api/e
 import { setToken, setUser } from "@/api/client";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { UserPlus } from "lucide-react";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const PHONE_REGEX = /^(97|98)\d{8}$/;
 
@@ -26,7 +27,7 @@ function validatePhone(phone: string): boolean {
 }
 
 const Register = () => {
-  const { t } = useTranslation(["auth", "common"]);
+  const { t } = useTranslation(["auth", "common", "client"]);
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -120,6 +121,12 @@ const Register = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-muted/30 to-background">
+      <ClientAppSeo
+        title={`${stageTitle} | ${t("client:brand")}`}
+        description={stageSubtitle}
+        canonicalPath="/register"
+        siteName={t("client:brand")}
+      />
       <div className="w-full max-w-md space-y-6 rounded-3xl border bg-card/95 p-7 shadow-xl backdrop-blur">
         <div className="space-y-3">
           <div className="w-11 h-11 rounded-2xl bg-primary/10 text-primary flex items-center justify-center">

@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { useOrders } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const PAYMENT_STATUS_CLASS: Record<string, string> = {
   paid: "bg-success/10 text-success",
@@ -29,7 +30,7 @@ function getItemPreview(items: { product_name: string }[] = [], t: (k: string, o
 }
 
 const MyOrders = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const { data, isLoading, error } = useOrders();
   const orders = data?.results ?? [];
 
@@ -84,6 +85,12 @@ const MyOrders = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("orders.myOrders")} | ${t("client:brand")}`}
+        description={t("orders.myOrders")}
+        canonicalPath="/orders"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40 border-b border-border">
         <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors">
           <ArrowLeft className="w-5 h-5" />

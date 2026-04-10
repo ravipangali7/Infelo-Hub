@@ -16,12 +16,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAddresses, useCreateAddress, useUpdateAddress, useDeleteAddress, useShippingCharges, useProfile } from "@/api/hooks";
 import type { Address } from "@/api/types";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 /** All delivery addresses are within Nepal; enforced on the server as well. */
 const DELIVERY_COUNTRY = "Nepal";
 
 const Addresses = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const [addOpen, setAddOpen] = useState(false);
   const [editing, setEditing] = useState<Address | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
@@ -81,6 +82,12 @@ const Addresses = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
+        <ClientAppSeo
+          title={`${t("misc.addresses.title")} | ${t("client:brand")}`}
+          description="Failed to load addresses."
+          canonicalPath="/addresses"
+          siteName={t("client:brand")}
+        />
         <p className="text-destructive">Failed to load addresses.</p>
       </div>
     );
@@ -88,6 +95,12 @@ const Addresses = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("misc.addresses.title")} | ${t("client:brand")}`}
+        description={t("misc.addresses.title")}
+        canonicalPath="/addresses"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content flex items-center justify-between py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40 border-b border-border">
         <div className="flex items-center gap-4">
           <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center hover:bg-muted/70 transition-colors">

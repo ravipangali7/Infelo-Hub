@@ -4,6 +4,7 @@ import { getToken, clearToken, getUser, setUser } from "@/api/client";
 import { getMe } from "@/api/endpoints";
 import { useAdminPendingCounts, useAdminSiteSettings } from "@/api/hooks";
 import { SiteAnalyticsScripts } from "@/components/SiteAnalyticsScripts";
+import { AdminPanelSeo } from "@/components/AdminPanelSeo";
 import { useActivityTracker } from "@/hooks/useActivityTracker";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -347,6 +348,7 @@ function AdminLayoutInner() {
 
   return (
     <div className="flex min-h-screen bg-background lg:h-svh lg:max-h-svh lg:overflow-hidden">
+      <AdminPanelSeo />
       <SiteAnalyticsScripts html={siteSettings?.google_analytics_script} />
       {/* Desktop Sidebar — fixed; nav scrolls inside */}
       <aside

@@ -6,9 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { forgotPasswordRequestOtp, forgotPasswordVerifyOtp } from "@/api/endpoints";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const ForgotPassword = () => {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation(["auth", "client"]);
   const navigate = useNavigate();
   const [step, setStep] = useState<1 | 2>(1);
   const [phone, setPhone] = useState("");
@@ -46,6 +47,12 @@ const ForgotPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-muted/50">
+      <ClientAppSeo
+        title={`${t("auth:forgot.title")} | ${t("client:brand")}`}
+        description={t("auth:forgot.stepOf", { step })}
+        canonicalPath="/forgot-password"
+        siteName={t("client:brand")}
+      />
       <div className="w-full max-w-sm space-y-6 rounded-3xl border bg-card p-6 shadow-lg">
         <div>
           <h1 className="text-2xl font-bold">{t("forgot.title")}</h1>

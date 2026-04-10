@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { resetPassword } from "@/api/endpoints";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const ResetPassword = () => {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation(["auth", "client"]);
   const location = useLocation();
   const navigate = useNavigate();
   const phone = (location.state as { phone?: string } | null)?.phone ?? "";
@@ -33,6 +34,12 @@ const ResetPassword = () => {
   if (!phone) {
     return (
       <div className="p-6 text-sm">
+        <ClientAppSeo
+          title={`${t("auth:reset.title")} | ${t("client:brand")}`}
+          description={t("auth:reset.invalidSession")}
+          canonicalPath="/reset-password"
+          siteName={t("client:brand")}
+        />
         {t("reset.invalidSession")}{" "}
         <Link to="/forgot-password" className="text-primary underline">
           {t("reset.tryAgain")}
@@ -44,6 +51,12 @@ const ResetPassword = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-b from-background to-muted/50">
+      <ClientAppSeo
+        title={`${t("auth:reset.title")} | ${t("client:brand")}`}
+        description={t("auth:reset.forPhone", { phone })}
+        canonicalPath="/reset-password"
+        siteName={t("client:brand")}
+      />
       <div className="w-full max-w-sm space-y-6 rounded-3xl border bg-card p-6 shadow-lg">
         <div>
           <h1 className="text-2xl font-bold">{t("reset.title")}</h1>

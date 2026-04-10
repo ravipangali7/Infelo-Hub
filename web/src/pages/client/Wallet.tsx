@@ -10,6 +10,7 @@ import {
 import { useWallet, useTransactions } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 function formatTime(iso: string, t: (key: string) => string) {
   const d = new Date(iso);
@@ -32,6 +33,12 @@ const Wallet = () => {
   if (walletError) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
+        <ClientAppSeo
+          title={`${t("pages:wallet.title")} | ${t("client:brand")}`}
+          description={t("pages:wallet.failedLoad")}
+          canonicalPath="/wallet"
+          siteName={t("client:brand")}
+        />
         <p className="text-destructive">{t("pages:wallet.failedLoad")}</p>
       </div>
     );
@@ -39,6 +46,12 @@ const Wallet = () => {
 
   return (
     <div className="min-h-screen">
+      <ClientAppSeo
+        title={`${t("pages:wallet.title")} | ${t("client:brand")}`}
+        description={t("pages:wallet.title")}
+        canonicalPath="/wallet"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content pt-6 pb-4">
         <h1 className="text-2xl font-bold font-display">{t("pages:wallet.title")}</h1>
       </header>

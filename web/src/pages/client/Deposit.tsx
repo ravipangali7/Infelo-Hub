@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const PAYMENT_METHOD_ORDER: PaymentMethod[] = ["esewa", "khalti", "bank"];
 
@@ -159,7 +160,7 @@ function payElsewhereHint(
 }
 
 const Deposit = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const { t: tCommon } = useTranslation("common");
   const [showForm, setShowForm] = useState(false);
   const [amount, setAmount] = useState("");
@@ -207,6 +208,12 @@ const Deposit = () => {
   if (walletError) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
+        <ClientAppSeo
+          title={`${t("deposit.title")} | ${t("client:brand")}`}
+          description={t("deposit.failedLoad")}
+          canonicalPath="/deposit"
+          siteName={t("client:brand")}
+        />
         <p className="text-destructive">{t("deposit.failedLoad")}</p>
       </div>
     );
@@ -225,6 +232,12 @@ const Deposit = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("deposit.title")} | ${t("client:brand")}`}
+        description={t("deposit.title")}
+        canonicalPath="/deposit"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content py-3 flex items-center gap-4 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <Link to="/wallet" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />

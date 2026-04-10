@@ -4,7 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, Edit, Tag, Layers, TrendingUp, Package, ImageIcon, Star } from "lucide-react";
+import { ArrowLeft, Edit, Tag, Layers, TrendingUp, Package, ImageIcon, Star, Share2 } from "lucide-react";
+import { CopyUrlField } from "@/components/CopyUrlField";
+import { crawlerShareProductUrl, siteOrigin } from "@/lib/seo";
 
 export default function ProductView() {
   const { id } = useParams<{ id: string }>();
@@ -62,6 +64,21 @@ export default function ProductView() {
           <Link to={`/system/products/${p.id}/edit`}><Button><Edit className="h-4 w-4 mr-1" />Edit</Button></Link>
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Share2 className="h-4 w-4" /> Social & SEO links
+          </CardTitle>
+          <p className="text-sm text-muted-foreground font-normal">
+            Share the crawler URL for rich previews; the public URL is what customers open in the app.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <CopyUrlField label="Public app URL" value={`${siteOrigin()}/product/${p.slug}`} />
+          <CopyUrlField label="Crawler / share preview URL" value={crawlerShareProductUrl(p.slug)} />
+        </CardContent>
+      </Card>
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

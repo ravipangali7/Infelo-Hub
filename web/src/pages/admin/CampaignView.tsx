@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AdminDataTable } from "@/components/admin";
-import { ArrowLeft, Edit, Users, CheckCircle2, XCircle, Clock, DollarSign, Video } from "lucide-react";
+import { ArrowLeft, Edit, Users, CheckCircle2, XCircle, Clock, DollarSign, Video, Share2 } from "lucide-react";
+import { CopyUrlField } from "@/components/CopyUrlField";
+import { crawlerShareCampaignUrl, siteOrigin } from "@/lib/seo";
 
 const campaignStatusColor = (s: string) =>
   s === "running" ? "default" : s === "finished" ? "secondary" : s === "deactivate" ? "destructive" : "outline";
@@ -57,6 +59,21 @@ export default function CampaignView() {
         </div>
         <Link to={`/system/campaigns/${c.id}/edit`}><Button><Edit className="h-4 w-4 mr-1" />Edit</Button></Link>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Share2 className="h-4 w-4" /> Social & SEO links
+          </CardTitle>
+          <p className="text-sm text-muted-foreground font-normal">
+            Use the crawler URL in posts when you need the correct Open Graph image in WhatsApp, Facebook, etc.
+          </p>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <CopyUrlField label="Public app URL" value={`${siteOrigin()}/campaign/${c.id}`} />
+          <CopyUrlField label="Crawler / share preview URL" value={crawlerShareCampaignUrl(c.id)} />
+        </CardContent>
+      </Card>
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

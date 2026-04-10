@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowLeft, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/contexts/CartContext";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const Cart = () => {
   const { t } = useTranslation(["pages", "common", "client"]);
@@ -12,6 +13,12 @@ const Cart = () => {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-background flex flex-col">
+        <ClientAppSeo
+          title={`${t("pages:cart.title")} | ${t("client:brand")}`}
+          description={t("pages:cart.emptyHint")}
+          canonicalPath="/cart"
+          siteName={t("client:brand")}
+        />
         <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 flex items-center bg-background/80 backdrop-blur-xl border-b border-border">
           <button
             type="button"
@@ -39,6 +46,12 @@ const Cart = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("pages:cart.titleWithCount", { count: items.length })} | ${t("client:brand")}`}
+        description={t("pages:cart.title")}
+        canonicalPath="/cart"
+        siteName={t("client:brand")}
+      />
       <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 flex items-center bg-background/80 backdrop-blur-xl border-b border-border">
         <button
           type="button"

@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { login } from "@/api/endpoints";
 import { ApiError, popAuthRedirectReason, setToken, setUser } from "@/api/client";
 import logo from "@/assets/logo.png";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 function normalizePhone(phone: string): string {
   return phone.replace(/\D/g, "");
 }
 
 const Login = () => {
-  const { t } = useTranslation("auth");
+  const { t } = useTranslation(["auth", "client"]);
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -57,6 +58,12 @@ const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-background via-muted/30 to-background">
+      <ClientAppSeo
+        title={`${t("auth:login.title")} | ${t("client:brand")}`}
+        description={t("auth:login.subtitle")}
+        canonicalPath="/login"
+        siteName={t("client:brand")}
+      />
       <div className="w-full max-w-md space-y-6 rounded-3xl border bg-card/95 p-7 shadow-xl backdrop-blur">
         <div className="space-y-3">
           <img src={logo} alt={t("login.title")} className="h-10 w-auto" />

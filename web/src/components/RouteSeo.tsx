@@ -14,6 +14,8 @@ type RouteSeoProps = {
   ogUrl?: string;
   /** Open Graph type (default website; use product for product pages). */
   ogType?: string;
+  /** Auth / account pages — ask crawlers not to index. */
+  noIndex?: boolean;
 };
 
 export function RouteSeo({
@@ -25,6 +27,7 @@ export function RouteSeo({
   siteName,
   ogUrl,
   ogType = "website",
+  noIndex = false,
 }: RouteSeoProps) {
   const origin = siteOrigin();
   const path = canonicalPath.startsWith("/") ? canonicalPath : `/${canonicalPath}`;
@@ -36,6 +39,7 @@ export function RouteSeo({
     <Helmet>
       <title>{title}</title>
       <meta name="description" content={description} />
+      {noIndex ? <meta name="robots" content="noindex, nofollow" /> : null}
       {keywords?.trim() ? <meta name="keywords" content={keywords.trim()} /> : null}
       <link rel="canonical" href={canonical} />
       <meta property="og:type" content={ogType} />

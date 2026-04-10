@@ -20,9 +20,10 @@ import { PaymentMethodLogo } from "@/components/PaymentMethodLogo";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const Withdraw = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const walletTypes = useMemo(
     () => [
       { id: "earning" as const, name: t("withdraw.earningWallet") },
@@ -87,6 +88,12 @@ const Withdraw = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("withdraw.title")} | ${t("client:brand")}`}
+        description={t("withdraw.processingNote")}
+        canonicalPath="/withdraw"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content py-3 flex items-center gap-4 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <Link to="/wallet" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />

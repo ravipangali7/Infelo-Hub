@@ -5,9 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useSubmission } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const SubmissionDetail = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const { id } = useParams();
   const raw = id ? Number(id) : NaN;
   const submissionId = Number.isFinite(raw) && raw > 0 ? Math.floor(raw) : null;
@@ -16,6 +17,12 @@ const SubmissionDetail = () => {
   if (submissionId === null) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 gap-4">
+        <ClientAppSeo
+          title={`${t("campaigns.submissionTitle")} | ${t("client:brand")}`}
+          description={t("campaigns.invalidLink")}
+          canonicalPath="/submission"
+          siteName={t("client:brand")}
+        />
         <p className="text-destructive">{t("campaigns.invalidLink")}</p>
         <Link to="/campaigns?tab=submissions" className="text-primary underline text-sm">
           {t("campaigns.backToSubmissions")}
@@ -27,6 +34,12 @@ const SubmissionDetail = () => {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center p-4 gap-4">
+        <ClientAppSeo
+          title={`${t("campaigns.submissionTitle")} | ${t("client:brand")}`}
+          description={t("campaigns.submissionNotFound")}
+          canonicalPath={`/submission/${id ?? ""}`}
+          siteName={t("client:brand")}
+        />
         <p className="text-destructive">{t("campaigns.submissionNotFound")}</p>
         <Link to="/campaigns?tab=submissions" className="text-primary underline text-sm">
           {t("campaigns.backToSubmissions")}
@@ -38,6 +51,12 @@ const SubmissionDetail = () => {
   if (isLoading || !submission) {
     return (
       <div className="min-h-screen bg-background">
+        <ClientAppSeo
+          title={`${t("campaigns.submissionTitle")} | ${t("client:brand")}`}
+          description={t("campaigns.submissionTitle")}
+          canonicalPath={`/submission/${submissionId}`}
+          siteName={t("client:brand")}
+        />
         <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
           <Link to="/campaigns?tab=submissions" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
@@ -57,6 +76,12 @@ const SubmissionDetail = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${submission.campaign_name} · ${t("campaigns.mySubmission")} | ${t("client:brand")}`}
+        description={submission.campaign_name}
+        canonicalPath={`/submission/${submission.id}`}
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <Link to="/campaigns?tab=submissions" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />

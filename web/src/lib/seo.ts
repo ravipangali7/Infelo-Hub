@@ -38,6 +38,13 @@ export function crawlerShareCampaignUrl(campaignId: number): string {
   return `${base}/share/campaign/${campaignId}/`;
 }
 
+/** Full sitemap URL on the API host (for Search Console / robots). */
+export function sitemapUrl(): string {
+  const base = shareServiceBase();
+  if (!base) return "";
+  return `${base}/sitemap.xml`;
+}
+
 /** Strip HTML and trim for meta descriptions. */
 export function plainTextExcerpt(raw: string, maxLen: number): string {
   const t = raw.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();

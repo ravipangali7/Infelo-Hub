@@ -6,6 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTransactions } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 function getIcon(type: string) {
   if (type === "added") return TrendingUp;
@@ -20,7 +21,7 @@ function getColor(type: string) {
 }
 
 const Transactions = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const [tab, setTab] = useState("all");
   const { data, isLoading } = useTransactions(
     tab === "all" ? undefined : (tab === "earning" ? "earning" : tab === "deposit" ? "deposit" : "withdrawal")
@@ -29,6 +30,12 @@ const Transactions = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("misc.transactions.title")} | ${t("client:brand")}`}
+        description={t("misc.transactions.title")}
+        canonicalPath="/transactions"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">

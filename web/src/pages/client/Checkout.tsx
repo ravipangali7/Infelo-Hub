@@ -10,11 +10,12 @@ import { clientApi } from "@/api/endpoints";
 import { toast } from "sonner";
 import type { Address } from "@/api/types";
 import { clearStoredAffiliateRef, getStoredAffiliateRef } from "@/lib/affiliate";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 type PaymentOption = "wallet" | "cod";
 
 const Checkout = () => {
-  const { t } = useTranslation(["pages", "common"]);
+  const { t } = useTranslation(["pages", "common", "client"]);
   const navigate = useNavigate();
   const { items, subtotal, clearCart } = useCart();
   const { data: addressData, isLoading: addressLoading } = useAddresses();
@@ -66,6 +67,12 @@ const Checkout = () => {
   if (items.length === 0) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4 text-center">
+        <ClientAppSeo
+          title={`${t("pages:checkout.title")} | ${t("client:brand")}`}
+          description={t("pages:checkout.cartEmpty")}
+          canonicalPath="/checkout"
+          siteName={t("client:brand")}
+        />
         <p className="text-muted-foreground">{t("pages:checkout.cartEmpty")}</p>
         <Button asChild>
           <Link to="/shop">{t("pages:checkout.browseProducts")}</Link>
@@ -80,6 +87,12 @@ const Checkout = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("pages:checkout.title")} | ${t("client:brand")}`}
+        description={t("pages:checkout.title")}
+        canonicalPath="/checkout"
+        siteName={t("client:brand")}
+      />
       <header className="fixed top-0 left-0 right-0 z-50 px-4 py-3 flex items-center bg-background/80 backdrop-blur-xl border-b border-border">
         <button
           type="button"

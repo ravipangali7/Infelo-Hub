@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Separator } from "@/components/ui/separator";
 import { useOrder, useAddresses } from "@/api/hooks";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const CANCELLED_STATUSES = ["cancelled", "rejected"];
 
@@ -32,7 +33,7 @@ function getStepIndex(steps: { key: string }[], status: string) {
 }
 
 const OrderDetail = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const { id } = useParams();
   const { data: order, isLoading, error } = useOrder(id ? Number(id) : null);
   const { data: addressesData } = useAddresses();
@@ -63,6 +64,12 @@ const OrderDetail = () => {
   if (error) {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-4">
+        <ClientAppSeo
+          title={`${t("orders.orderLabel")} | ${t("client:brand")}`}
+          description={t("orders.notFound")}
+          canonicalPath={id ? `/orders/${id}` : "/orders"}
+          siteName={t("client:brand")}
+        />
         <AlertCircle className="w-12 h-12 text-destructive/60" />
         <p className="text-destructive font-medium">{t("orders.notFound")}</p>
         <Link to="/orders" className="text-sm text-primary underline">
@@ -75,6 +82,12 @@ const OrderDetail = () => {
   if (isLoading || !order) {
     return (
       <div className="min-h-screen bg-background">
+        <ClientAppSeo
+          title={`${t("orders.orderLabel")} | ${t("client:brand")}`}
+          description={t("orders.myOrders")}
+          canonicalPath={id ? `/orders/${id}` : "/orders"}
+          siteName={t("client:brand")}
+        />
         <div className="client-page-container client-page-content bg-gradient-primary pt-12 pb-16">
           <Skeleton className="h-6 w-32 rounded-lg bg-white/20 mb-2" />
           <Skeleton className="h-8 w-48 rounded-lg bg-white/20" />
@@ -114,6 +127,12 @@ const OrderDetail = () => {
 
   return (
     <div className="min-h-screen bg-background pb-10">
+      <ClientAppSeo
+        title={`${t("orders.orderLabel")} #${order.id} | ${t("client:brand")}`}
+        description={`${t("orders.orderLabel")} #${order.id}`}
+        canonicalPath={`/orders/${order.id}`}
+        siteName={t("client:brand")}
+      />
       <div className="client-page-container client-page-content bg-gradient-primary relative overflow-hidden pt-4 pb-20">
         <div
           className="absolute inset-0 opacity-10"

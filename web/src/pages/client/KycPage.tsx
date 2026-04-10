@@ -6,9 +6,10 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useKycStatus, useSubmitKyc } from "@/api/hooks";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const KycPage = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const [frontDoc, setFrontDoc] = useState<File | null>(null);
   const [backDoc, setBackDoc] = useState<File | null>(null);
   const [frontPreview, setFrontPreview] = useState<string | null>(null);
@@ -61,6 +62,12 @@ const KycPage = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
+        <ClientAppSeo
+          title={`${t("misc.kyc.title")} | ${t("client:brand")}`}
+          description={t("misc.kyc.loadFailed")}
+          canonicalPath="/kyc"
+          siteName={t("client:brand")}
+        />
         <p className="text-destructive">{t("misc.kyc.loadFailed")}</p>
       </div>
     );
@@ -68,6 +75,12 @@ const KycPage = () => {
   if (isLoading || !user) {
     return (
       <div className="min-h-screen bg-background">
+        <ClientAppSeo
+          title={`${t("misc.kyc.title")} | ${t("client:brand")}`}
+          description={t("misc.kyc.title")}
+          canonicalPath="/kyc"
+          siteName={t("client:brand")}
+        />
         <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
           <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
             <ArrowLeft className="w-5 h-5" />
@@ -84,6 +97,12 @@ const KycPage = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("misc.kyc.title")} | ${t("client:brand")}`}
+        description={t("misc.kyc.title")}
+        canonicalPath="/kyc"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content flex items-center gap-4 py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">
           <ArrowLeft className="w-5 h-5" />

@@ -30,6 +30,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ApiError } from "@/api/client";
 import type { PaymentMethod, PayoutAccount } from "@/api/types";
 import { PaymentMethodLogo, PaymentMethodSelectOptionContent } from "@/components/PaymentMethodLogo";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const PAYMENT_METHODS = [
   { value: "esewa" as const, label: "eSewa" },
@@ -51,7 +52,7 @@ const getStatusBadge = (status: string) => {
 };
 
 const PayoutAccounts = () => {
-  const { t } = useTranslation("pages");
+  const { t } = useTranslation(["pages", "client"]);
   const { toast } = useToast();
   const [addOpen, setAddOpen] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("esewa");
@@ -135,6 +136,12 @@ const PayoutAccounts = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      <ClientAppSeo
+        title={`${t("misc.payout.title")} | ${t("client:brand")}`}
+        description={t("misc.payout.title")}
+        canonicalPath="/payout-accounts"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content flex items-center justify-between py-3 sticky top-0 bg-background/80 backdrop-blur-xl z-40">
         <div className="flex items-center gap-4">
           <Link to="/profile" className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center">

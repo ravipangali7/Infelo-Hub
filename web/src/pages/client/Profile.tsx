@@ -33,6 +33,7 @@ import { clearToken } from "@/api/client";
 import { clientApi } from "@/api/endpoints";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ClientAppSeo } from "@/components/ClientAppSeo";
 
 const getKycBadge = (status: string, t: (k: string) => string) => {
   switch (status) {
@@ -104,6 +105,12 @@ const Profile = () => {
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
+        <ClientAppSeo
+          title={`${t("pages:profile.title")} | ${t("client:brand")}`}
+          description={t("pages:profile.failedLoad")}
+          canonicalPath="/profile"
+          siteName={t("client:brand")}
+        />
         <p className="text-destructive">{t("pages:profile.failedLoad")}</p>
       </div>
     );
@@ -111,6 +118,12 @@ const Profile = () => {
   if (isLoading || !profile) {
     return (
       <div className="min-h-screen">
+        <ClientAppSeo
+          title={`${t("pages:profile.title")} | ${t("client:brand")}`}
+          description={t("pages:profile.title")}
+          canonicalPath="/profile"
+          siteName={t("client:brand")}
+        />
         <header className="client-page-container client-page-content pt-6 pb-4">
           <h1 className="text-2xl font-bold font-display">{t("pages:profile.title")}</h1>
         </header>
@@ -126,6 +139,12 @@ const Profile = () => {
 
   return (
     <div className="min-h-screen">
+      <ClientAppSeo
+        title={`${t("pages:profile.title")} | ${t("client:brand")}`}
+        description={t("pages:profile.title")}
+        canonicalPath="/profile"
+        siteName={t("client:brand")}
+      />
       <header className="client-page-container client-page-content pt-6 pb-4">
         <h1 className="text-2xl font-bold font-display">{t("pages:profile.title")}</h1>
       </header>
