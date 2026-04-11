@@ -16,7 +16,7 @@ echo "🌐 Frontend build..."
 cd /home/infelogr/domains/Infelo-Hub/web
 
 # Activate Node environment
-source /home/infelogr/nodevenv/domains/app.infelogroup.com/10/bin/activate
+source /home/infelogr/nodevenv/domains/node.infelogroup.com/24/bin/activate
 
 # Install & build
 npm run build
