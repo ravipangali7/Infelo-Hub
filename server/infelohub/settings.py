@@ -104,17 +104,16 @@ WSGI_APPLICATION = 'infelohub.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'infelohub'),
-        'USER': os.environ.get('DB_USER', 'admin'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', '127.0.0.1'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
+        'NAME': 'infelohub',
+        'USER': 'admin', 
+        'PASSWORD': 'Alex$stark453',
+        'HOST': '82.180.145.220', 
+        'PORT': '3306',
         'OPTIONS': {
-            'charset': 'utf8mb4',
-            'connect_timeout': int(os.environ.get('DB_CONNECT_TIMEOUT', '600')),
-            'read_timeout': int(os.environ.get('DB_READ_TIMEOUT', '600')),
-            'write_timeout': int(os.environ.get('DB_WRITE_TIMEOUT', '600')),
-        },
+            'connect_timeout': 600,  # 10 minutes
+            'read_timeout': 600,     # 10 minutes
+            'write_timeout': 600,    # 10 minutes
+        }
     }
 }
 
