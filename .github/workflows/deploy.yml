@@ -28,4 +28,11 @@ jobs:
             sudo systemctl restart infelohub
 
             cd ${{ secrets.VPS_PATH }}/web
+
+            # fnm (Node version manager)
+            FNM_PATH="/home/luna/.local/share/fnm"
+            if [ -d "$FNM_PATH" ]; then
+              export PATH="$FNM_PATH:$PATH"
+              eval "$(fnm env)"
+            fi
             npm run build
